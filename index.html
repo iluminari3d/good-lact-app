@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoodLact</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Montserrat', sans-serif; }
+        #results-view, #dish-builder-container, #loading-spinner, #error-message, #food-hint, #lactose-free-view, #faq-modal, .fcc-info-popup, #reset-modal, #timer-view { display: none; }
+        .form-select, .form-input, .form-textarea { transition: all 0.3s ease-in-out; }
+        input:disabled, select:disabled { background-color: #f3f4f6; cursor: not-allowed; opacity: 0.7; }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.6); display: flex; align-items: center; justify-content: center; z-index: 50; }
+        .modal-content { max-height: 80vh; overflow-y: auto; }
+        .info-popup { position: absolute; z-index: 20; display: none; width: 15rem; padding: 0.75rem; font-size: 0.875rem; font-weight: 400; color: #374151; background-color: #ffffff; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); border: 1px solid #e5e7eb; bottom: 100%; left: 50%; transform: translateX(-50%); margin-bottom: 0.5rem; }
+        .clear-btn { position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); display: none; }
+        .input-container.is-analyzing .form-input, .input-container.is-analyzing .form-select, .input-container.is-analyzing .form-textarea { animation: pulse-border 1.5s infinite; }
+        @keyframes pulse-border { 0% { border-color: #d1d5db; } 50% { border-color: #2c7bb6; } 100% { border-color: #d1d5db; } }
+        .toggle-ingredients-btn svg { transition: transform 0.3s ease; }
+        .toggle-ingredients-btn.expanded svg { transform: rotate(180deg); }
+        .btn-loading .btn-text { visibility: hidden; }
+        .btn-loading .btn-spinner { display: inline-block; }
+        .btn-spinner { display: none; }
+    </style>
+</head>
+<body class="bg-gray-50 flex items-center justify-center min-h-screen py-8">
+
+    <div class="w-full max-w-md md:max-w-4xl mx-auto p-4 md:p-6">
+        <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8">
+            <div id="app-container">
+                <!-- Header -->
+                <div class="text-center mb-6">
+                    <div class="flex justify-center mb-4">
+                        <svg id="GoodLact-Logo" data-name="Livello 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 768.92 883.44" class="h-[5.2rem] w-[5.2rem]"><defs><style>.cls-1-new { fill: #73c0ec; } .cls-2-new { fill: #fff; } .cls-3-new { fill: #2c7bb6; }</style></defs><g id="GoodLact"><g><path class="cls-1-new" d="M381.63,267.78c1.08-12.83,2.1-30.64,1.01-53.08-.34-7-.92-14.38-1.84-22.33-4.84-41.92-15.68-71.51-18-77.71-8.89-23.76-18.06-39.07-20.2-42.59-7.76-12.78-16.06-26.44-30.73-39.51-7.36-6.55-26.73-23.38-57.07-29.41-9.18-1.82-46.9-8.13-83.41,14.96-29.64,18.75-41.23,45.97-45.22,55.72-7.3,17.85-8.96,33.9-9.22,44.34-9.91.23-25.13,1.72-42.15,8.34-10.83,4.22-47.37,19.11-65.41,59.27-15.83,35.22-7.53,67.85-4.39,78.15,10,32.78,32.37,51.19,45.44,61.95,18.04,14.85,35.9,22.57,46.76,27.17,15.65,6.63,29.27,10.27,42.59,13.17,17.02,3.71,79.04,16.16,174.85,5.97,32.97-3.51,40.71-6.58,47.41-12.73,12.87-11.81,15.11-38.43,19.59-91.68Z"/><path class="cls-3-new" d="M540.6,840.37c-1.76-2.86-4.23-4.26-4.83-4.61-.39-.23-11.53-10.84-33.8-32.05-19.25-18.33-34.1-42.65-42.37-56.2-14.17-23.21-23.93-45.12-30.73-63.66-2.95-7.3-6.87-17.5-10.98-29.85-3.49-10.5-14.72-45.45-22.17-98.56-3.84-27.37-7.38-64.61-6.94-109.94.08-.41.16-.84.24-1.26-3.64-41.58,3.27-50.14,6.15-53.22,4.55-4.85,13.48-11.43,31.72-12.62,16.85-.98,73.42-3.89,130.11.88,1.13-.11,2.25-.22,3.36-.33,24.61-2.41,46.73-4.98,74.63-13.17,43.88-12.87,68.29-29.72,74.63-34.24,15.24-10.85,30.09-21.43,42.15-41.71,15.83-26.62,16.36-52.32,16.24-60.59-.08-5.77-.86-29.53-13.61-52.68-29.24-53.07-97.17-58.85-103.17-59.27-.23-9.78-1.67-24.6-7.9-41.27-3.91-10.45-15.72-40.66-47.85-60.15-5.99-3.63-25.73-14.8-53.56-15.8-31.83-1.15-54.91,11.69-64.76,17.34-37.35,21.43-53.71,55.03-64.54,77.27-20.7,42.51-24.35,82.87-26.44,106.02-1.93,21.39-1.29,36.39-4.55,67.03,0,.01,0,.03,0,.04-4.48,53.25-6.72,79.88-19.59,91.68-6.7,6.15-14.45,9.23-47.41,12.73-13.34,1.42-26.02,2.4-38.02,3.02-23.69,2.09-46.15,2.97-56.93,3.61-11.54.68-57.63,3.92-111.07,23.39-24.38,8.88-42.77,15.79-61.9,32.93-10.57,9.47-39.05,34.96-43.46,77.27-3.7,35.48,11.62,62.57,18,72.44,31.65,48.95,89.06,54.3,96.59,54.88.26,9.2,1.65,22.63,7.02,37.76,12.67,35.63,38.14,54.45,43.02,57.95,7.32,5.24,36.53,24.89,74.63,21.95,58.04-4.48,92.29-58.64,101.85-73.76,20.12-31.82,29.55-68.17,33.85-98.61,2.35,17.43,5.71,38,10.93,61.74,6.33,28.81,13.6,61.16,29.85,101.63,4.82,12,16.11,38.86,34.46,69.15,10.81,17.85,19.33,29.05,27.22,38.2,8.52,9.88,16.49,17.56,22.61,23.05,1.21,1.09,3.95,3.57,8.12,4.39,3.22.63,5.84,0,7.13-.33,11.47-2.9,18.55-16.06,19.65-18.11.85-1.58,4.94-9.44,4.39-17.56-.24-3.59-1.29-5.69-1.98-6.8Z"/><g><path class="cls-1-new" d="M767.14,507.58c-5.87-29.75-23.17-47.99-35.12-60.59-22.77-24.01-47.46-35.08-66.73-43.46-5.22-2.27-22.33-9.5-46.28-15.08-70.43-16.42-168.92-11.4-192.11-10.05-18.24,1.19-27.17,7.77-31.72,12.62-3.65,3.89-13.74,16.55-.77,93.73,5.2,30.96,10.81,52.64,12.09,57.51,10.69,40.82,22.5,68.72,25.23,75.08,14.48,33.74,26.85,51.8,31.17,57.95,6.41,9.14,11.24,15.95,19.32,23.71,6.3,6.05,24.86,23.43,54.88,30.73,8.74,2.12,40.78,9.41,75.51-7.02,9.91-4.69,32.06-17,47.41-43.02,10.12-17.16,13.21-33.37,14.29-42.9,6.53-.86,15.57-2.64,25.66-6.71,40.69-16.39,57.47-53.26,59.71-58.39,13.55-31.04,8.51-58.78,7.46-64.1ZM626.87,661.9c-2.78,4.89-11.52,19.8-29.85,28.98-26.11,13.07-51.75,4.55-58.83,2.2-6.48-2.16-23.28-8.62-43.9-32.05-14.82-16.83-28.62-39.03-43.81-88.61-8.47-27.64-18.16-66.36-23.36-114.22,10.43,6.87,26.95,17.12,48.29,27.66,29.62,14.62,37.53,14.48,67.17,28.98,30.07,14.71,47.19,23.29,64.1,41.71,9.92,10.8,24.35,26.95,28.54,52.24,1.27,7.67,4.66,30.25-8.34,53.12Z"/><path class="cls-1-new" d="M587.47,645.38c-8.74-1.55-15.67,3.74-22.94,6.42-12.17,4.48-23.91,1.12-29.74-.55-13.35-3.82-21.55-12.06-29.52-20.09-5.42-5.45-12.35-13.62-18.44-25.02,3.57,12.61,10.18,28.51,22.72,43.24,5.08,5.97,11.58,13.45,22.83,19.1,4.48,2.25,13.01,5.86,24.26,6.59,15.26.98,25.59-3.99,28.1-5.27,8.62-4.39,10.17-8.53,10.54-9.66,1.19-3.64.98-9-2.3-12.18-1.74-1.68-3.84-2.29-5.49-2.58Z"/></g><path class="cls-2-new" d="M635.21,608.78c-4.19-25.29-18.62-41.44-28.54-52.24-16.91-18.42-34.03-27-64.1-41.71-29.64-14.5-37.55-14.35-67.17-28.98-21.34-10.54-37.87-20.79-48.29-27.66,5.2,47.86,14.89,86.58,23.36,114.22,15.19,49.58,28.99,71.78,43.81,88.61,20.63,23.43,37.42,29.89,43.9,32.05,7.08,2.35,32.72,10.88,58.83-2.2,18.33-9.18,27.07-24.09,29.85-28.98,13.01-22.87,9.61-45.45,8.34-53.12ZM595.26,660.15c-.37,1.13-1.91,5.27-10.54,9.66-2.51,1.28-12.84,6.25-28.1,5.27-11.25-.72-19.78-4.34-24.26-6.59-11.25-5.64-17.75-13.13-22.83-19.1-12.54-14.73-19.15-30.63-22.72-43.24,6.09,11.4,13.02,19.58,18.44,25.02,7.97,8.02,16.17,16.27,29.52,20.09,5.84,1.67,17.58,5.02,29.74.55,7.27-2.68,14.2-7.97,22.94-6.42,1.65.29,3.75.89,5.49,2.58,3.28,3.18,3.5,8.54,2.3,12.18Z"/></g></g></svg>
+                    </div>
+                    <h1 class="text-4xl font-montserrat tracking-wide text-[#2c7bb6]">
+                        <span class="font-bold">Good</span><span class="font-medium">Lact</span>
+                    </h1>
+                    <p class="font-montserrat text-lg text-[#73c0ec] mt-1">Il tuo portafortuna a tavola</p>
+                </div>
+            </div>
+
+            <div id="main-view">
+                <form id="lactase-form">
+                    <div class="grid grid-cols-1 md:grid-cols-2 md:gap-x-8">
+                        
+                        <!-- Left Column -->
+                        <div class="space-y-5">
+                            <div>
+                                <div class="flex justify-between items-center mb-1">
+                                    <label for="lactase-type" class="block text-sm font-medium text-gray-700">Scegli la tua lattasi</label>
+                                    <button type="button" id="reset-btn" class="text-gray-400 hover:text-gray-600 transition-colors" title="Reset parametri">
+                                        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+                                            <path fill="currentColor" d="M24,8h-3.7c3,1.7,5,5,5,8.7,0,5.5-4.5,10-10,10s-10-4.5-10-10,3.4-8.9,8-9.8v1.4c-3.8.9-6.7,4.3-6.7,8.4s3.9,8.7,8.7,8.7,8.7-3.9,8.7-8.7-2.2-6.7-5.3-8v4.7h-1.3v-6.7h6.7v1.3Z"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <select id="lactase-type" name="lactase-type" class="form-select w-full p-3 bg-gray-100 border-2 border-gray-300 rounded-lg focus:ring-[#2c7bb6] focus:border-[#2c7bb6]"></select>
+                            </div>
+
+                            <div>
+                                <div class="flex items-center justify-between mb-1">
+                                    <label for="fcc-per-pill" class="block text-sm font-medium text-gray-700">FCC per compressa</label>
+                                    <div class="relative fcc-info-container">
+                                        <button type="button" class="fcc-info-btn flex items-center justify-center w-4 h-4 border border-gray-400 rounded-full text-gray-500 hover:bg-gray-200 focus:outline-none transition-colors duration-200">
+                                            <span class="text-xs font-bold italic">i</span>
+                                        </button>
+                                        <div class="info-popup fcc-info-popup">
+                                              <h3 class="font-semibold text-gray-900">Cosa sono gli FCC?</h3>
+                                              <p class="mt-1">FCC sta per "Food Chemical Codex". È un'unità di misura che indica la potenza di un enzima, in questo caso la lattasi.</p>
+                                              <p class="mt-1">Un numero più alto di FCC significa che la compressa può digerire una maggiore quantità di lattosio.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <input type="number" id="fcc-per-pill" name="fcc-per-pill" class="form-input w-full p-3 bg-gray-100 border-2 border-gray-300 rounded-lg focus:ring-[#2c7bb6] focus:border-[#2c7bb6]" placeholder="Es. 9000">
+                                <p id="lactase-info" class="text-xs text-gray-500 mt-1 pl-1"></p>
+                            </div>
+                        </div>
+
+                        <!-- Right Column -->
+                        <div class="space-y-4 mt-5 md:mt-0">
+                             <div id="food-rows-container" class="space-y-4">
+                                <!-- Food rows will be injected here by JavaScript -->
+                             </div>
+                             <div>
+                                <button type="button" id="add-food-btn" class="w-full flex items-center justify-center py-2 px-4 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-[#2c7bb6] hover:text-[#2c7bb6] transition-all duration-300" title="Aggiungi alimento">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
+                                    <span class="ml-2 text-sm font-medium">Aggiungi alimento</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Calculate Button (spanning both columns) -->
+                        <div class="md:col-span-2 mt-5">
+                            <button type="submit" id="calculate-btn" class="w-full bg-[#2c7bb6] text-white font-bold py-3 px-4 rounded-lg hover:bg-white hover:text-[#2c7bb6] border-2 border-transparent hover:border-[#2c7bb6] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2c7bb6] transition-all duration-300 transform hover:scale-105 flex items-center justify-center group h-14 relative">
+                                <span class="btn-text">Calcola la dose</span>
+                                <div class="btn-spinner absolute animate-spin rounded-full h-5 w-5 border-b-2 border-white group-hover:border-[#2c7bb6]"></div>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                 <p id="error-message" class="mt-4 text-center text-red-600 bg-red-100 p-3 rounded-lg"></p>
+                 <div class="mt-6 text-center">
+                    <button type="button" id="faq-btn" class="text-[#2c7bb6] hover:text-[#256a9d] text-sm font-semibold">Domande Frequenti (FAQ)</button>
+                 </div>
+                 <p class="text-xs text-gray-400 mt-4 text-center">Disclaimer: Questo strumento è una stima. Per una diagnosi certa, consulta un medico e considera test specifici come il Breath Test (test del respiro) o analisi del sangue.</p>
+            </div>
+            
+            <div id="dish-builder-container">
+                 <div class="flex justify-start mb-4">
+                     <button id="back-to-simple-btn" type="button" class="flex items-center text-sm text-gray-500 hover:text-gray-800">
+                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                         Annulla
+                     </button>
+                 </div>
+                <div class="space-y-4">
+                    <div>
+                        <label for="base-dish-name" class="block text-sm font-medium text-gray-700">Piatto Base</label>
+                        <div class="relative mt-1 input-container">
+                             <input type="text" id="base-dish-name" class="form-input w-full p-3 bg-gray-100 border-2 border-gray-300 rounded-lg focus:ring-[#2c7bb6] focus:border-[#2c7bb6]" placeholder="Es. Pizza, Risotto, Pasta...">
+                             <button type="button" class="clear-btn text-gray-400 hover:text-gray-600">
+                                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>
+                             </button>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="base-dish-weight" class="block text-sm font-medium text-gray-700">Peso (g)</label>
+                        <input type="number" id="base-dish-weight" class="form-input w-full p-3 bg-gray-100 border-2 border-gray-300 rounded-lg mt-1" placeholder="Es. 190">
+                        <p id="base-dish-info" class="text-xs text-gray-500 mt-1 pl-1 h-3"></p>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-medium text-gray-700">Ingredienti</h3>
+                        <div id="additional-ingredients-container" class="mt-2 space-y-3">
+                            <!-- Additional ingredients will be injected here -->
+                        </div>
+                        <button type="button" id="add-ingredient-btn" class="mt-3 w-full flex items-center justify-center py-2 px-4 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-[#73c0ec] hover:text-[#73c0ec] transition-all duration-300">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
+                            <span class="ml-2 text-sm font-medium">Aggiungi ingrediente</span>
+                        </button>
+                    </div>
+                    <div class="pt-4">
+                         <button type="button" id="confirm-dish-btn" class="w-full bg-[#2c7bb6] text-white font-bold py-2 px-4 rounded-lg hover:bg-white hover:text-[#2c7bb6] border-2 border-transparent hover:border-[#2c7bb6] transition-all duration-300 relative flex items-center justify-center h-10 group">
+                            <span class="btn-text">Aggiungi Piatto al Calcolo</span>
+                            <div class="btn-spinner absolute animate-spin rounded-full h-5 w-5 border-b-2 border-white group-hover:border-[#2c7bb6]"></div>
+                         </button>
+                    </div>
+                </div>
+            </div>
+
+
+            <div id="results-view" class="text-center">
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">Risultato dell'analisi</h2>
+                <div class="bg-blue-50 p-6 rounded-lg space-y-4 my-4">
+                    <div>
+                        <p class="text-sm text-blue-800">Lattosio totale stimato</p>
+                        <p id="result-lactose" class="text-2xl font-bold text-blue-900"></p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-blue-800">FCC necessari</p>
+                        <p id="result-fcc" class="text-2xl font-bold text-blue-900"></p>
+                    </div>
+                </div>
+
+                <div id="pills-result-container" class="bg-green-50 p-6 rounded-lg">
+                     <p class="text-sm text-green-800">Dose consigliata (<span id="result-pill-name" class="font-semibold"></span>)</p>
+                     <p id="result-pills" class="text-4xl font-extrabold text-green-700"></p>
+                     <p id="dose-warning" class="text-xs font-semibold text-yellow-800 mt-2" style="display: none;">Nota: Le linee guida generali suggeriscono di non superare le 2 compresse ad alta concentrazione per pasto. Considera di dividere la dose se possibile.</p>
+                </div>
+
+                <div id="auto-added-container" class="hidden bg-orange-50 p-4 rounded-lg my-4 text-left">
+                    <h4 class="font-semibold text-sm text-orange-800">Ingredienti aggiunti dall'analisi:</h4>
+                    <p id="auto-added-list" class="text-sm text-orange-700 mt-1"></p>
+                </div>
+
+                <div class="mt-6 space-y-3">
+                    <button id="start-timer-btn" type="button" class="w-full bg-[#2c7bb6] text-white font-bold py-2 px-4 rounded-lg hover:bg-white hover:text-[#2c7bb6] border-2 border-transparent hover:border-[#2c7bb6] transition-all duration-300">Avvia Timer Copertura</button>
+                    <button class="recalculate-btn w-full bg-white text-[#73c0ec] font-bold py-2 px-4 rounded-lg hover:bg-[#73c0ec] hover:text-white border-2 border-[#73c0ec] transition-all duration-300">Calcola di nuovo</button>
+                </div>
+            </div>
+
+            <div id="timer-view" class="flex flex-col justify-between items-center p-4 text-center">
+                <!-- Payoff Text (Top) -->
+                <div class="w-full">
+                    <p class="text-xl font-semibold text-[#2c7bb6]">Copertura Attiva!</p>
+                    <p class="text-gray-500 text-sm">Rilassati e goditi il tuo pasto.</p>
+                </div>
+
+                <!-- Timer Circle (Middle) -->
+                <div class="relative w-64 h-64">
+                    <canvas id="timer-canvas" width="256" height="256" class="absolute top-0 left-0"></canvas>
+                    <div id="timer-text-wrapper" class="absolute inset-0 flex flex-col items-center justify-center text-center leading-tight">
+                        <div class="absolute inset-0 flex flex-col items-center justify-center text-[#2c7bb6]">
+                            <p class="text-sm">Copertura<br>Rimanente</p>
+                            <p id="timer-text-blue" class="text-5xl font-bold">45:00</p>
+                        </div>
+                        <div id="timer-text-clipper" class="absolute inset-0 overflow-hidden">
+                            <div class="absolute inset-0 flex flex-col items-center justify-center text-gray-100">
+                                <p class="text-sm">Copertura<br>Rimanente</p>
+                                <p id="timer-text-white" class="text-5xl font-bold">45:00</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Buttons (Bottom) -->
+                <div class="w-full max-w-xs">
+                     <button id="pause-timer-btn" type="button" class="w-full bg-yellow-400 text-yellow-900 font-bold py-3 px-4 rounded-lg border-2 border-yellow-400 hover:bg-white hover:text-yellow-900 transition-all duration-300 mb-3">Metti in Pausa</button>
+                    <button class="recalculate-btn w-full bg-white text-[#73c0ec] font-bold py-3 px-4 rounded-lg hover:bg-[#73c0ec] hover:text-white border-2 border-[#73c0ec] transition-all duration-300">Calcola un altro pasto</button>
+                </div>
+            </div>
+
+
+            <div id="lactose-free-view" class="text-center">
+                <div class="p-6 bg-teal-50 border-2 border-teal-200 rounded-lg">
+                    <svg class="h-12 w-12 text-teal-500 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                    </svg>
+                    <h2 class="text-xl font-bold text-teal-800">Ottime notizie!</h2>
+                    <p id="lactose-free-main-text" class="text-gray-700 mt-2">Gli alimenti scelti sono **senza lattosio** o ne contengono una quantità trascurabile!</p>
+                    <p id="lactose-free-info" class="text-sm text-gray-600 bg-teal-100 p-3 rounded-md mt-4"></p>
+                </div>
+                <button class="recalculate-btn mt-6 w-full bg-white text-[#73c0ec] font-bold py-2 px-4 rounded-lg hover:bg-[#73c0ec] hover:text-white border-2 border-[#73c0ec] transition-all duration-300">Calcola di nuovo</button>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="faq-modal" class="modal-overlay">
+        <div class="bg-white rounded-lg shadow-xl m-4 max-w-lg w-full modal-content">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold text-gray-800">Domande Frequenti (FAQ)</h2>
+                    <button id="close-faq-btn" class="text-gray-500 hover:text-gray-800 text-3xl">&times;</button>
+                </div>
+                <div class="space-y-5 text-sm">
+                    <div>
+                        <h3 class="font-semibold text-gray-800">Come funziona il "Costruttore di Piatti"?</h3>
+                        <p class="text-gray-600 mt-1">Quando scegli "Costruisci Piatto Personalizzato", puoi inserire un "Piatto Base" (es. Pizza). L'app stima il peso standard, che puoi modificare. Poi, puoi aggiungere tutti gli "Ingredienti Aggiuntivi" che vuoi (es. stracciatella, panna). Per ogni ingrediente, l'app stima una quantità realistica in base al piatto base, che puoi comunque personalizzare. Clicca "Aggiungi Piatto" per salvare il tutto e tornare alla schermata principale.</p>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-800">Cos'è l'intolleranza al lattosio?</h3>
+                        <p class="text-gray-600 mt-1">È l'incapacità di digerire completamente il lattosio, lo zucchero presente nel latte e nei suoi derivati. Questa condizione è causata da una carenza dell'enzima lattasi, che normalmente scompone il lattosio in zuccheri più semplici (glucosio e galattosio) per l'assorbimento.</p>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-800">Che tipi di integratori di lattasi esistono?</h3>
+                        <p class="text-gray-600 mt-1">Gli integratori forniscono l'enzima lattasi mancante. Si differenziano principalmente per il dosaggio, misurato in FCC (Food Chemical Codex). Dosaggi comuni vanno da 2.500 a 20.000 FCC per compressa. La scelta dipende dalla propria sensibilità e dalla quantità di lattosio nel pasto. L'efficacia dura generalmente dai 30 ai 60 minuti, con una media di 45 minuti usata per il nostro timer.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="reset-modal" class="modal-overlay">
+        <div class="bg-white rounded-lg shadow-xl m-4 max-w-sm w-full p-6 text-center">
+            <h3 class="text-lg font-medium text-gray-900">Conferma Reset</h3>
+            <p class="mt-2 text-sm text-gray-500">Sei sicuro di voler resettare tutti i campi e gli alimenti inseriti?</p>
+            <div class="mt-6 flex justify-center gap-4">
+                <button id="cancel-reset-btn" type="button" class="w-full bg-[#2c7bb6] text-white font-bold py-2 px-4 rounded-lg hover:bg-white hover:text-[#2c7bb6] border-2 border-transparent hover:border-[#2c7bb6] transition-all duration-300">Annulla</button>
+                <button id="confirm-reset-btn" type="button" class="w-full bg-white text-red-600 font-bold py-2 px-4 rounded-lg hover:bg-red-600 hover:text-white border-2 border-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-300">Reset</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+    (function() {
+        'use strict';
+
+        const GoodLactCore = {
+            data: {
+                lactase: {
+                    '': { name: 'Scegli la lattasi utilizzata', fcc: '', info: '' },
+                    'digesi-9000': { name: 'Digesì', fcc: 9000, info: 'Uso: 1 compressa prima del pasto. Contiene 9000 unità FCC.' },
+                    'lacdigest-lactofree-4500': { name: 'Lacdigest Lactofree', fcc: 4500, info: 'Uso: 1-2 compresse masticabili prima dei pasti. Contiene 4500 unità FCC.' },
+                    'lactojoy-14500': { name: 'Lactojoy', fcc: 14500, info: 'Uso: Assumere poco prima dei pasti con lattosio. Max 10 al giorno.' },
+                    'intoleran-20000': { name: 'Intoleran 20.000', fcc: 20000, info: 'Uso: Assumere prima del pasto. Max 20 al giorno. Adattare la dose.' },
+                    'intoleran-10000': { name: 'Intoleran 10.000', fcc: 10000, info: 'Uso: Assumere prima del pasto. Max 20 al giorno. Adattare la dose.' },
+                    'lactaid-9000': { name: 'Lactaid Fast Act', fcc: 9000, info: 'Uso: Assumere col primo boccone. Se necessario, una seconda. Max 2 alla volta.' },
+                    'milicon-4500': { name: 'Milicon 4.500', fcc: 4500, info: 'Uso: 1-2 compresse prima dei pasti principali. Max 4 al giorno.' },
+                    'custom': { name: 'Personalizzato', fcc: '', info: 'Inserisci i tuoi valori di FCC.' }
+                },
+                foods: {
+                    '': { name: 'Scegli l\'alimento', lactoseMode: 'none' },
+                    'custom-dish': { name: 'Costruisci Piatto Personalizzato', lactoseMode: 'builder' },
+                    'latte-vaccino': { name: 'Latte vaccino', lactoseMode: 'per100g', lactosePer100g: 4.8, defaultUnit: 'bicchiere' },
+                    'yogurt': { name: 'Yogurt', lactoseMode: 'per100g', lactosePer100g: 4.0, defaultUnit: 'cucchiaio' },
+                    'gelato-artigianale': { name: 'Gelato artigianale', lactoseMode: 'per100g', lactosePer100g: 6.0, defaultUnit: 'coppetta-media' },
+                    'mozzarella': { name: 'Mozzarella', lactoseMode: 'per100g', lactosePer100g: 1.0, defaultUnit: 'grammi' },
+                    'ricotta': { name: 'Ricotta', lactoseMode: 'per100g', lactosePer100g: 3.5, defaultUnit: 'cucchiaio' },
+                    'burro': { name: 'Burro', lactoseMode: 'per100g', lactosePer100g: 0.6, defaultUnit: 'cucchiaino' },
+                    'panna-da-cucina': { name: 'Panna da cucina', lactoseMode: 'per100g', lactosePer100g: 3.2, defaultUnit: 'cucchiaio' },
+                    'besciamella': { name: 'Besciamella', lactoseMode: 'per100g', lactosePer100g: 4.7, defaultUnit: 'cucchiaio' },
+                    'formaggio-spalmabile': { name: 'Formaggio spalmabile', lactoseMode: 'per100g', lactosePer100g: 3.0, defaultUnit: 'cucchiaio' },
+                    'mascarpone': { name: 'Mascarpone', lactoseMode: 'per100g', lactosePer100g: 2.5, defaultUnit: 'cucchiaio' },
+                    'pure-di-patate': { name: 'Purè di patate (con latte)', lactoseMode: 'per100g', lactosePer100g: 2.5, defaultUnit: 'cucchiaio' },
+                    'cornetto-crema': { name: 'Cornetto alla crema', lactoseMode: 'perPortion', lactosePerPortion: 3.0, hint: 'Un cornetto standard pesa circa 50g.' },
+                    'pizza-margherita': { name: 'Pizza Margherita (intera)', lactoseMode: 'perPortion', lactosePerPortion: 4.5, hint: 'Una pizza standard pesa circa 325g.' },
+                    'risotto-mantecato': { name: 'Piatto di Risotto (mantecato)', lactoseMode: 'perPortion', lactosePerPortion: 3.6, hint: 'Un piatto standard è circa 190g.' },
+                    'pasta-con-panna': { name: 'Piatto di Pasta con panna', lactoseMode: 'perPortion', lactosePerPortion: 6.3, hint: 'Un piatto standard è circa 180g.' },
+                    'cappuccino': { name: 'Cappuccino (tazza standard)', lactoseMode: 'perPortion', lactosePerPortion: 6.0, hint: 'Basato su ~125ml di latte (150g totali).' },
+                    'tiramisu-porzione': { name: 'Tiramisù (porzione)', lactoseMode: 'perPortion', lactosePerPortion: 6.0, hint: 'Una porzione standard pesa circa 150g.' },
+                    'parmigiano': { name: 'Parmigiano / Grana', lactoseMode: 'per100g', lactosePer100g: 0.0, isLactoseFree: true, lactoseFreeInfo: 'Durante la lunga stagionatura (oltre 24 mesi), il lattosio viene fermentato dai batteri lattici, scomparendo quasi completamente.' },
+                    'gorgonzola': { name: 'Gorgonzola DOP', lactoseMode: 'per100g', lactosePer100g: 0.0, isLactoseFree: true, lactoseFreeInfo: 'Grazie al processo di produzione e alla fermentazione con le muffe nobili, il lattosio viene eliminato naturalmente.' },
+                    'pecorino-stagionato': { name: 'Pecorino (stagionato)', lactoseMode: 'per100g', lactosePer100g: 0.1, isLactoseFree: true, lactoseFreeInfo: 'La stagionatura riduce il lattosio a livelli trascurabili per la maggior parte delle persone.' },
+                    'emmental': { name: 'Emmental / Groviera', lactoseMode: 'per100g', lactosePer100g: 0.0, isLactoseFree: true, lactoseFreeInfo: 'La stagionatura e i batteri propionici responsabili dei caratteristici "buchi" consumano tutto il lattosio residuo.' },
+                },
+                units: {
+                    'grammi': { name: 'grammi', multiplier: 1 },
+                    'ml': { name: 'ml', multiplier: 1 },
+                    'fetta': { name: 'fetta (~100g)', multiplier: 100 },
+                    'piatto': { name: 'piatto (~180g)', multiplier: 180 },
+                    'bicchiere': { name: 'bicchiere (~200g)', multiplier: 200 },
+                    'tazza': { name: 'tazza (~250g)', multiplier: 250 },
+                    'coppetta-piccola': { name: 'coppetta piccola (~80g)', multiplier: 80 },
+                    'coppetta-media': { name: 'coppetta media (~150g)', multiplier: 150 },
+                    'coppetta-grande': { name: 'coppetta grande (~200g)', multiplier: 200 },
+                    'cono-gelato': { name: 'cono (~120g)', multiplier: 120 },
+                    'cucchiaio': { name: 'cucchiaio (~15g)', multiplier: 15 },
+                    'cucchiaino': { name: 'cucchiaino (~5g)', multiplier: 5 },
+                    'porzione': { name: 'porzione/i', multiplier: 1 },
+                }
+            },
+
+            async callApi(payload) {
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || `API request failed with status ${response.status}`);
+                }
+                return response.json();
+            },
+
+            async analyzeFoodItem(name, weight) {
+                const payload = { type: 'analyzeFoodItem', data: { name, weight } };
+                try {
+                    const result = await this.callApi(payload);
+                    return result.lactoseAmount;
+                } catch (error) {
+                    console.error(`API Error for ${name}:`, error);
+                    return 0;
+                }
+            },
+
+            async analyzeBaseDishWithHiddenIngredients(name, weight) {
+                const payload = { type: 'analyzeBaseDish', data: { name, weight } };
+                try {
+                    return await this.callApi(payload);
+                } catch (error) {
+                    console.error(`API Error for base dish ${name}:`, error);
+                    const lactose = await this.analyzeFoodItem(name, weight);
+                    return { estimatedLactose: lactose, hiddenIngredients: [] };
+                }
+            },
+            
+             async analyzeIngredientQuantity(baseDish, baseWeight, ingredientName) {
+                const payload = { type: 'getIngredientQuantity', data: { baseDish, baseWeight, ingredientName } };
+                try {
+                    const result = await this.callApi(payload);
+                    return result.quantity;
+                } catch (error) {
+                    console.error(`API Error for ingredient quantity:`, error);
+                    return null;
+                }
+            },
+            
+            async analyzeBaseDishWeight(dishName) {
+                 const payload = { type: 'getBaseDishWeight', data: { dishName } };
+                try {
+                    const result = await this.callApi(payload);
+                    return result.weight;
+                } catch (error) {
+                    console.error(`API Error for base dish weight:`, error);
+                    return null;
+                }
+            },
+
+            calculatePills(totalLactoseGrams, fccPerPill) {
+                const requiredFcc = totalLactoseGrams * 1000;
+                if (fccPerPill <= 0) return { requiredFcc, recommendedPills: 0 };
+                const pillsNeeded = requiredFcc / fccPerPill;
+                const recommendedPills = Math.ceil(pillsNeeded * 2) / 2;
+                return { requiredFcc, recommendedPills };
+            }
+        };
+
+        const GoodLactApp = {
+            dom: {},
+            timers: {},
+            state: {
+                isTimerPaused: false,
+                timerStartTime: 0,
+                timerPausedTime: 0,
+                timerTotalDuration: 2700000 // 45 minutes
+            },
+
+            debounce(func, delay) {
+                let timeout;
+                return (...args) => {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => func.apply(this, args), delay);
+                };
+            },
+
+            init() {
+                this.cacheDom();
+                this.bindEvents();
+                this.populateLactaseSelect();
+                this.addFoodRow();
+            },
+
+            cacheDom() {
+                const a = (id) => document.getElementById(id);
+                this.dom = {
+                    appCard: document.querySelector('.bg-white.rounded-2xl'), 
+                    lactaseSelect: a('lactase-type'), fccInput: a('fcc-per-pill'), infoText: a('lactase-info'), mainView: a('main-view'),
+                    foodRowsContainer: a('food-rows-container'), addFoodBtn: a('add-food-btn'), form: a('lactase-form'),
+                    resultsView: a('results-view'), timerView: a('timer-view'), lactoseFreeView: a('lactose-free-view'),
+                    lactoseFreeMainText: a('lactose-free-main-text'), lactoseFreeInfo: a('lactose-free-info'),
+                    faqBtn: a('faq-btn'), faqModal: a('faq-modal'), closeFaqBtn: a('close-faq-btn'), calculateBtn: a('calculate-btn'),
+                    errorMessage: a('error-message'),
+                    resetBtn: a('reset-btn'), resetModal: a('reset-modal'), cancelResetBtn: a('cancel-reset-btn'),
+                    confirmResetBtn: a('confirm-reset-btn'), startTimerBtn: a('start-timer-btn'), autoAddedContainer: a('auto-added-container'),
+                    autoAddedList: a('auto-added-list'),
+                    dishBuilderContainer: a('dish-builder-container'), backToSimpleBtn: a('back-to-simple-btn'),
+                    baseDishNameInput: a('base-dish-name'), baseDishWeightInput: a('base-dish-weight'), baseDishInfo: a('base-dish-info'), addIngredientBtn: a('add-ingredient-btn'),
+                    additionalIngredientsContainer: a('additional-ingredients-container'), confirmDishBtn: a('confirm-dish-btn'),
+                    recalculateBtns: document.querySelectorAll('.recalculate-btn'),
+                    pauseTimerBtn: a('pause-timer-btn') 
+                };
+            },
+
+            bindEvents() {
+                this.dom.lactaseSelect.addEventListener('change', this.handleLactaseChange.bind(this));
+                this.dom.fccInput.addEventListener('input', () => this.validateField(this.dom.fccInput));
+                this.dom.addFoodBtn.addEventListener('click', this.addFoodRow.bind(this));
+                this.dom.form.addEventListener('submit', this.handleFormSubmit.bind(this));
+                this.dom.startTimerBtn.addEventListener('click', this.startTimer.bind(this));
+                this.dom.recalculateBtns.forEach(btn => btn.addEventListener('click', this.showMainView.bind(this)));
+                this.dom.faqBtn.addEventListener('click', () => this.dom.faqModal.style.display = 'flex');
+                this.dom.closeFaqBtn.addEventListener('click', () => this.dom.faqModal.style.display = 'none');
+                this.dom.faqModal.addEventListener('click', (e) => { if (e.target === this.dom.faqModal) this.dom.faqModal.style.display = 'none'; });
+                this.dom.resetBtn.addEventListener('click', () => this.dom.resetModal.style.display = 'flex');
+                this.dom.cancelResetBtn.addEventListener('click', () => this.dom.resetModal.style.display = 'none');
+                this.dom.confirmResetBtn.addEventListener('click', () => { this.resetUIData(true); this.dom.resetModal.style.display = 'none'; });
+                this.dom.backToSimpleBtn.addEventListener('click', this.handleCancelDishBuilder.bind(this));
+                this.dom.baseDishNameInput.addEventListener('input', this.debounce(this.handleBaseDishInput, 800));
+                this.dom.baseDishNameInput.nextElementSibling.addEventListener('click', () => { this.dom.baseDishNameInput.value = ''; this.dom.baseDishNameInput.dispatchEvent(new Event('input', { bubbles: true })); });
+                this.dom.addIngredientBtn.addEventListener('click', () => this.addIngredientRow());
+                this.dom.confirmDishBtn.addEventListener('click', this.handleConfirmDish.bind(this));
+                this.dom.pauseTimerBtn.addEventListener('click', this.handlePauseTimer.bind(this)); 
+            },
+
+            populateLactaseSelect() {
+                this.populateSelect(this.dom.lactaseSelect, GoodLactCore.data.lactase, false);
+            },
+
+            populateSelect(selectElement, data, sort) {
+                selectElement.innerHTML = '';
+                let dataArray = Object.entries(data);
+                if (sort) {
+                    const specialKeys = ['', 'custom-dish'];
+                    const specialItems = dataArray.filter(([key]) => specialKeys.includes(key));
+                    const normalItems = dataArray.filter(([key]) => !specialKeys.includes(key));
+                    normalItems.sort(([, a], [, b]) => a.name.localeCompare(b.name));
+                    dataArray = specialItems.concat(normalItems);
+                }
+                dataArray.forEach(([key, value]) => {
+                    const option = document.createElement('option');
+                    option.value = key;
+                    option.textContent = value.name;
+                    if (key === '') option.disabled = true;
+                    selectElement.appendChild(option);
+                });
+                if (selectElement.querySelector('option[disabled]')) {
+                     selectElement.value = '';
+                }
+            },
+
+            handleLactaseChange(e) {
+                const selectedKey = e.target.value;
+                const lactaseInfo = GoodLactCore.data.lactase[selectedKey];
+                this.dom.fccInput.value = lactaseInfo.fcc;
+                this.dom.infoText.textContent = lactaseInfo.info || '';
+                this.dom.fccInput.readOnly = selectedKey !== 'custom';
+                if (selectedKey === 'custom') this.dom.fccInput.focus();
+                this.validateField(e.target);
+                this.validateField(this.dom.fccInput);
+            },
+            
+            async handleFormSubmit(e) {
+                e.preventDefault();
+                if (!this.validateForm()) return;
+
+                this.setButtonLoading(this.dom.calculateBtn, true);
+                this.dom.autoAddedContainer.style.display = 'none';
+
+                try {
+                    let totalLactoseGrams = 0;
+                    let allAutoAddedIngredients = [];
+                    let itemCount = 0, lactoseFreeItemCount = 0;
+                    let firstLactoseFreeFoodInfo = null;
+
+                    const foodRows = this.dom.foodRowsContainer.querySelectorAll('.food-row');
+
+                    for (const row of foodRows) {
+                        itemCount++;
+                        if (row.dataset.dishData) {
+                            const dish = JSON.parse(row.dataset.dishData);
+                            totalLactoseGrams += dish.base.lactoseAmount || 0;
+                            dish.ingredients.forEach(ing => totalLactoseGrams += ing.lactoseAmount || 0);
+                            dish.hiddenIngredients.forEach(ing => {
+                                totalLactoseGrams += ing.lactoseAmount || 0;
+                                allAutoAddedIngredients.push(ing);
+                            });
+                        } else {
+                            const foodKey = row.querySelector('.food-item').value;
+                            if (!foodKey) { itemCount--; continue; }
+                            
+                            const selectedFood = GoodLactCore.data.foods[foodKey];
+                            if (selectedFood.isLactoseFree) {
+                                lactoseFreeItemCount++;
+                                if(!firstLactoseFreeFoodInfo) firstLactoseFreeFoodInfo = selectedFood.lactoseFreeInfo;
+                                continue;
+                            }
+                            if(selectedFood.lactoseMode === 'builder') { itemCount--; continue; }
+
+                            const quantity = parseFloat(row.querySelector('.quantity').value);
+                            const unitKey = row.querySelector('.unit').value;
+                            if (selectedFood.lactoseMode === 'perPortion') {
+                                totalLactoseGrams += (selectedFood.lactosePerPortion || 0) * quantity;
+                            } else {
+                                const totalGrams = quantity * (GoodLactCore.data.units[unitKey]?.multiplier || 0);
+                                totalLactoseGrams += (totalGrams / 100) * (selectedFood.lactosePer100g || 0);
+                            }
+                        }
+                    }
+                    
+                    if (itemCount > 0 && itemCount === lactoseFreeItemCount) {
+                        this.showLactoseFreeResult(firstLactoseFreeFoodInfo);
+                        return;
+                    }
+
+                    if (allAutoAddedIngredients.length > 0) {
+                        this.dom.autoAddedList.textContent = allAutoAddedIngredients.map(i => `${i.name} (~${Math.round(i.estimatedGrams)}g)`).join(', ');
+                        this.dom.autoAddedContainer.style.display = 'block';
+                    }
+
+                    const finalResult = GoodLactCore.calculatePills(totalLactoseGrams, parseFloat(this.dom.fccInput.value));
+                    this.showResults(totalLactoseGrams, finalResult.requiredFcc, finalResult.recommendedPills);
+                } catch (error) {
+                    console.error('Calculation Error:', error);
+                    this.showError("Si è verificato un errore durante il calcolo.");
+                } finally {
+                    this.setButtonLoading(this.dom.calculateBtn, false);
+                }
+            },
+
+            addFoodRow() {
+                const rowId = `food-row-${Date.now()}`;
+                const foodRowHtml = `
+                    <div id="${rowId}" class="food-row border-t border-gray-200 pt-4 space-y-2 first:border-t-0 first:pt-0">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-sm font-medium text-gray-700">Alimento</label>
+                            <button type="button" class="remove-food-btn text-gray-400 hover:text-red-500" style="display: none;" title="Rimuovi alimento"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 000 2h6a1 1 0 100-2H7z" clip-rule="evenodd"></path></svg></button>
+                        </div>
+                        <div class="food-item-container">
+                            <select class="food-item form-select w-full p-3 bg-gray-100 border-2 border-gray-300 rounded-lg focus:ring-[#2c7bb6] focus:border-[#2c7bb6]"></select>
+                        </div>
+                        <div class="custom-dish-display hidden w-full bg-blue-50 border-2 border-blue-200 rounded-lg">
+                            <div class="p-3">
+                                <div class="flex items-center justify-between">
+                                    <div class="dish-name-container font-medium text-blue-800 break-all">
+                                        Piatto: <span class="dish-name"></span> (<span class="dish-weight"></span>g)
+                                    </div>
+                                    <div class="flex items-center space-x-3 ml-2">
+                                        <button type="button" class="edit-dish-btn text-blue-600 hover:text-blue-800 flex-shrink-0" title="Modifica Piatto">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L14.732 3.732z"></path></svg>
+                                        </button>
+                                        <button type="button" class="toggle-ingredients-btn text-blue-600 hover:text-blue-800 flex-shrink-0" title="Mostra/Nascondi Ingredienti">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="ingredients-details mt-2 pt-2 border-t border-blue-200 text-sm text-gray-600" style="display: none;">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 quantity-unit-container" style="display: none;">
+                            <div class="relative"><label class="block text-sm font-medium text-gray-700 mb-1">Quantità</label><div class="input-container h-12"><input type="number" class="quantity form-input w-full h-full p-3 bg-gray-100 border-2 border-gray-300 rounded-lg" value="1" min="1"></div></div>
+                            <div class="relative"><label class="block text-sm font-medium text-gray-700 mb-1">Unità</label><div class="input-container h-12"><select class="unit form-select w-full h-full p-3 bg-gray-100 border-2 border-gray-300 rounded-lg"></select></div></div>
+                        </div>
+                        <p class="food-hint text-xs text-gray-500 pl-1"></p>
+                    </div>`;
+                this.dom.foodRowsContainer.insertAdjacentHTML('beforeend', foodRowHtml);
+                const newRow = document.getElementById(rowId);
+                const foodSelect = newRow.querySelector('.food-item');
+                this.populateSelect(foodSelect, GoodLactCore.data.foods, true);
+                foodSelect.addEventListener('change', () => this.handleFoodChange(newRow));
+                newRow.querySelector('.remove-food-btn').addEventListener('click', () => { newRow.remove(); this.updateRemoveButtons(); });
+                this.updateRemoveButtons();
+            },
+
+            handleFoodChange(row) {
+                const foodSelect = row.querySelector('.food-item');
+                const foodKey = foodSelect.value;
+                if (!foodKey) return;
+                
+                row.querySelector('.custom-dish-display').style.display = 'none';
+                row.querySelector('.quantity-unit-container').style.display = 'none';
+
+                if (foodKey === 'custom-dish') { 
+                    this.switchToDishBuilder(row.id, false); 
+                    return; 
+                }
+                
+                const selectedFood = GoodLactCore.data.foods[foodKey];
+                const quantityUnitContainer = row.querySelector('.quantity-unit-container');
+                const unitSelect = row.querySelector('.unit');
+                const foodHint = row.querySelector('.food-hint');
+                
+                quantityUnitContainer.style.display = 'grid';
+                foodHint.textContent = selectedFood.hint || '';
+                const units = GoodLactCore.data.units;
+
+                if (foodKey === 'gelato-artigianale') {
+                     this.populateSelect(unitSelect, { 'coppetta-piccola': units['coppetta-piccola'], 'coppetta-media': units['coppetta-media'], 'coppetta-grande': units['coppetta-grande'], 'cono-gelato': units['cono-gelato'], 'grammi': units.grammi });
+                } else if (selectedFood.lactoseMode === 'perPortion') {
+                    this.populateSelect(unitSelect, { 'porzione': units.porzione, 'grammi': units.grammi });
+                } else {
+                    const standardUnits = {...units};
+                    ['porzione', 'coppetta-piccola', 'coppetta-media', 'coppetta-grande', 'cono-gelato'].forEach(k => delete standardUnits[k]);
+                    this.populateSelect(unitSelect, standardUnits);
+                }
+                unitSelect.value = selectedFood.defaultUnit || 'grammi';
+                this.validateField(foodSelect);
+            },
+
+            updateRemoveButtons() {
+                const allRows = this.dom.foodRowsContainer.querySelectorAll('.food-row');
+                allRows.forEach(row => { row.querySelector('.remove-food-btn').style.display = allRows.length > 1 ? 'block' : 'none'; });
+            },
+
+            addIngredientRow(name = '', quantity = '', isAuto = false) {
+                const ingredientId = `ingredient-row-${Date.now()}`;
+                const disabled = isAuto ? 'disabled' : '';
+                const bgColor = isAuto ? 'bg-gray-200' : 'bg-gray-50';
+                const removeBtn = isAuto 
+                    ? `<button type="button" class="remove-ingredient-btn text-gray-400 hover:text-red-500" title="Rimuovi ingrediente automatico"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg></button>`
+                    : `<button type="button" class="remove-ingredient-btn text-gray-400 hover:text-red-500" title="Rimuovi ingrediente"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 000 2h6a1 1 0 100-2H7z" clip-rule="evenodd"></path></svg></button>`;
+
+                const ingredientHtml = `
+                    <div id="${ingredientId}" class="ingredient-row grid grid-cols-[1fr_auto_min-content_auto] gap-x-2 items-center" data-is-auto="${isAuto}">
+                        <div class="relative input-container">
+                            <input type="text" class="ingredient-name form-input w-full p-2 ${bgColor} border-2 border-gray-300 rounded-lg text-sm" placeholder="Es. Mozzarella" value="${name}" ${disabled}>
+                        </div>
+                        <div class="relative input-container">
+                            <input type="number" class="ingredient-quantity form-input w-20 p-2 ${bgColor} border-2 border-gray-300 rounded-lg text-sm" placeholder="--" value="${quantity}" ${disabled}>
+                        </div>
+                        <span class="text-sm text-gray-600">g</span>
+                        ${removeBtn}
+                    </div>`;
+                this.dom.additionalIngredientsContainer.insertAdjacentHTML('beforeend', ingredientHtml);
+                const newIngredientRow = document.getElementById(ingredientId);
+                const nameInput = newIngredientRow.querySelector('.ingredient-name');
+                
+                if (!isAuto) {
+                    nameInput.addEventListener('input', this.debounce(async () => {
+                        const ingredientName = nameInput.value;
+                        const baseDishName = this.dom.baseDishNameInput.value;
+                        const baseDishWeight = parseFloat(this.dom.baseDishWeightInput.value) || 0;
+
+                        if (ingredientName.length > 2 && baseDishName.length > 0 && baseDishWeight > 0) {
+                             nameInput.parentElement.classList.add('is-analyzing');
+                             try {
+                                 const estQuantity = await GoodLactCore.analyzeIngredientQuantity(baseDishName, baseDishWeight, ingredientName);
+                                 if (estQuantity) {
+                                    newIngredientRow.querySelector('.ingredient-quantity').value = Math.round(estQuantity);
+                                 }
+                             } catch (error) { console.error("Ingredient Analysis Error:", error); }
+                             finally { nameInput.parentElement.classList.remove('is-analyzing'); }
+                        }
+                         this.validateField(nameInput);
+                    }, 800));
+                }
+                
+                newIngredientRow.querySelector('.remove-ingredient-btn').addEventListener('click', () => newIngredientRow.remove());
+                if (!name) nameInput.focus();
+            },
+
+            async handleBaseDishInput(e) {
+                const dishName = e.target.value;
+                const clearBtn = e.target.nextElementSibling;
+                const inputContainer = this.dom.baseDishNameInput.parentElement;
+                clearBtn.style.display = dishName.length > 0 ? 'block' : 'none';
+
+                this.dom.additionalIngredientsContainer.querySelectorAll('[data-is-auto="true"]').forEach(el => el.remove());
+
+                if (dishName.length < 4) {
+                    this.dom.baseDishInfo.textContent = '';
+                    return;
+                }
+
+                this.dom.baseDishInfo.textContent = 'Analisi del piatto base...';
+                inputContainer.classList.add('is-analyzing');
+                try {
+                    const weight = await GoodLactCore.analyzeBaseDishWeight(dishName);
+                    if (weight && weight > 0) {
+                        this.dom.baseDishWeightInput.value = weight;
+                        this.dom.baseDishInfo.textContent = `Peso stimato. Puoi modificarlo.`;
+                        
+                        const baseAnalysis = await GoodLactCore.analyzeBaseDishWithHiddenIngredients(dishName, weight);
+                        if (baseAnalysis && baseAnalysis.hiddenIngredients) {
+                            baseAnalysis.hiddenIngredients.forEach(ing => {
+                                if (ing.name && Number.isFinite(ing.estimatedGrams) && ing.estimatedGrams > 0) {
+                                    this.addIngredientRow(ing.name, Math.round(ing.estimatedGrams), true);
+                                }
+                            });
+                        }
+                    } else {
+                        this.dom.baseDishWeightInput.value = '';
+                        this.dom.baseDishInfo.textContent = 'Impossibile stimare il peso. Inseriscilo.';
+                    }
+                } catch (error) { 
+                    this.dom.baseDishInfo.textContent = 'Errore di analisi.';
+                    console.error("Base dish analysis failed:", error);
+                } finally { 
+                    inputContainer.classList.remove('is-analyzing'); 
+                }
+                this.validateField(e.target);
+            },
+
+            async handleConfirmDish() {
+                const baseName = this.dom.baseDishNameInput.value.trim();
+                const baseWeight = parseFloat(this.dom.baseDishWeightInput.value);
+
+                if (!baseName) { this.showError("Inserisci il nome del piatto base."); this.dom.baseDishNameInput.classList.add('border-red-500'); return; }
+                if (!baseWeight || baseWeight <= 0) { this.showError("Inserisci un peso valido per il piatto base."); this.dom.baseDishWeightInput.classList.add('border-red-500'); return; }
+                this.hideError();
+                
+                this.setButtonLoading(this.dom.confirmDishBtn, true);
+
+                try {
+                    const targetRowId = this.dom.dishBuilderContainer.dataset.targetRowId;
+                    const targetRow = document.getElementById(targetRowId);
+
+                    const userIngredients = [];
+                    const hiddenIngredients = [];
+
+                    this.dom.additionalIngredientsContainer.querySelectorAll('.ingredient-row').forEach(row => {
+                        const isAuto = row.dataset.isAuto === 'true';
+                        const ingredient = {
+                            name: row.querySelector('.ingredient-name').value.trim(),
+                            quantity: parseFloat(row.querySelector('.ingredient-quantity').value)
+                        };
+                        if (ingredient.name && ingredient.quantity > 0) {
+                            if (isAuto) {
+                                hiddenIngredients.push({ name: ingredient.name, estimatedGrams: ingredient.quantity });
+                            } else {
+                                userIngredients.push(ingredient);
+                            }
+                        }
+                    });
+
+                    const dishData = {
+                        base: { name: baseName, weight: baseWeight },
+                        ingredients: userIngredients,
+                        hiddenIngredients: hiddenIngredients
+                    };
+
+                    const updatedDishData = await this.updateAllLactoseValues(dishData);
+                    targetRow.dataset.dishData = JSON.stringify(updatedDishData);
+                    this.renderCustomDishDisplay(targetRow, updatedDishData);
+                    this.switchToMainView();
+
+                } catch (error) {
+                    console.error("Error confirming dish:", error);
+                    this.showError("Errore nell'analisi del piatto. Riprova.");
+                } finally {
+                    this.setButtonLoading(this.dom.confirmDishBtn, false);
+                }
+            },
+
+            renderCustomDishDisplay(row, dishData) {
+                const dishDisplay = row.querySelector('.custom-dish-display');
+                const dishNameSpan = dishDisplay.querySelector('.dish-name');
+                const dishWeightSpan = dishDisplay.querySelector('.dish-weight');
+                const ingredientsDetails = dishDisplay.querySelector('.ingredients-details');
+                
+                dishNameSpan.textContent = dishData.base.name;
+                dishWeightSpan.textContent = Math.round(dishData.base.weight);
+                
+                let ingredientsHtml = '<ul class="space-y-1 list-disc ml-4">';
+                const allIngredients = [...dishData.ingredients, ...dishData.hiddenIngredients];
+
+                if (allIngredients.length > 0) {
+                    ingredientsHtml += allIngredients.map(ing => {
+                        const quantity = ing.quantity ?? ing.estimatedGrams;
+                        const isAuto = ing.hasOwnProperty('estimatedGrams');
+                        return `<li>${ing.name} <span class="text-gray-500">(${Math.round(quantity)}g${isAuto ? ', auto' : ''})</span></li>`;
+                    }).join('');
+                } else {
+                    ingredientsHtml += '<li class="list-none text-gray-500 italic">Nessun ingrediente aggiuntivo.</li>';
+                }
+                ingredientsHtml += '</ul>';
+                ingredientsDetails.innerHTML = ingredientsHtml;
+
+                row.querySelector('.food-item-container').style.display = 'none';
+                dishDisplay.style.display = 'block';
+
+                dishDisplay.querySelector('.toggle-ingredients-btn').onclick = (e) => {
+                    const btn = e.currentTarget;
+                    const details = btn.closest('.custom-dish-display').querySelector('.ingredients-details');
+                    const isVisible = details.style.display === 'block';
+                    details.style.display = isVisible ? 'none' : 'block';
+                    btn.classList.toggle('expanded', !isVisible);
+                };
+
+                dishDisplay.querySelector('.edit-dish-btn').onclick = () => {
+                    this.switchToDishBuilder(row.id, true);
+                };
+            },
+            
+            async updateAllLactoseValues(dishData) {
+                const baseLactosePromise = GoodLactCore.analyzeFoodItem(dishData.base.name, dishData.base.weight);
+                const ingredientPromises = dishData.ingredients.map(async (ing) => ({
+                    ...ing,
+                    lactoseAmount: await GoodLactCore.analyzeFoodItem(ing.name, ing.quantity)
+                }));
+                const hiddenIngredientPromises = dishData.hiddenIngredients.map(async (ing) => ({
+                    ...ing,
+                    lactoseAmount: await GoodLactCore.analyzeFoodItem(ing.name, ing.estimatedGrams)
+                }));
+
+                const [baseLactose, finalIngredients, finalHiddenIngredients] = await Promise.all([
+                    baseLactosePromise,
+                    Promise.all(ingredientPromises),
+                    Promise.all(hiddenIngredientPromises)
+                ]);
+
+                return {
+                    base: { ...dishData.base, lactoseAmount: baseLactose },
+                    ingredients: finalIngredients,
+                    hiddenIngredients: finalHiddenIngredients
+                };
+            },
+            
+            handleCancelDishBuilder() {
+                const isEditing = this.dom.dishBuilderContainer.dataset.isEditing === 'true';
+                if (!isEditing) {
+                    const targetRowId = this.dom.dishBuilderContainer.dataset.targetRowId;
+                    const targetRow = document.getElementById(targetRowId);
+                    if(targetRow) {
+                        targetRow.querySelector('.food-item').value = '';
+                        this.handleFoodChange(targetRow);
+                    }
+                }
+                this.switchToMainView();
+            },
+            
+            switchToDishBuilder(targetRowId, isEditing = false) {
+                this.dom.mainView.style.display = 'none';
+                this.dom.dishBuilderContainer.style.display = 'block';
+                this.dom.dishBuilderContainer.dataset.targetRowId = targetRowId;
+                this.dom.dishBuilderContainer.dataset.isEditing = isEditing;
+
+                this.dom.additionalIngredientsContainer.innerHTML = '';
+                const confirmBtn = this.dom.confirmDishBtn;
+                const confirmBtnText = confirmBtn.querySelector('.btn-text');
+
+                if (isEditing) {
+                    const targetRow = document.getElementById(targetRowId);
+                    const dishData = JSON.parse(targetRow.dataset.dishData);
+                    this.dom.baseDishNameInput.value = dishData.base.name;
+                    this.dom.baseDishWeightInput.value = Math.round(dishData.base.weight);
+                    this.dom.baseDishInfo.textContent = '';
+                    dishData.ingredients.forEach(ing => this.addIngredientRow(ing.name, ing.quantity, false));
+                    dishData.hiddenIngredients.forEach(ing => this.addIngredientRow(ing.name, ing.estimatedGrams, true));
+                    confirmBtnText.textContent = 'Aggiorna Piatto';
+                } else {
+                    this.dom.baseDishNameInput.value = '';
+                    this.dom.baseDishWeightInput.value = '';
+                    this.dom.baseDishInfo.textContent = '';
+                    confirmBtnText.textContent = 'Aggiungi Piatto al Calcolo';
+                }
+                this.dom.baseDishNameInput.focus();
+            },
+
+            switchToMainView() {
+                this.dom.dishBuilderContainer.style.display = 'none';
+                this.dom.mainView.style.display = 'block';
+            },
+
+            setButtonLoading(button, isLoading) {
+                if(isLoading) {
+                    button.classList.add('btn-loading');
+                    button.disabled = true;
+                } else {
+                    button.classList.remove('btn-loading');
+                    button.disabled = false;
+                }
+            },
+
+            showResults(totalLactoseGrams, requiredFcc, recommendedPills) {
+                document.getElementById('result-lactose').textContent = `${totalLactoseGrams.toFixed(1)} g`;
+                document.getElementById('result-fcc').textContent = `${Math.round(requiredFcc).toLocaleString('it-IT')} FCC`;
+                document.getElementById('result-pill-name').textContent = GoodLactCore.data.lactase[this.dom.lactaseSelect.value].name;
+                document.getElementById('result-pills').textContent = `${recommendedPills.toLocaleString('it-IT')} ${recommendedPills === 1 ? 'compressa' : 'compresse'}`;
+                
+                const doseWarning = document.getElementById('dose-warning');
+                const pillsResultContainer = document.getElementById('pills-result-container');
+                const doseLabel = pillsResultContainer.querySelector('.text-sm');
+                const doseValue = document.getElementById('result-pills');
+                
+                if (recommendedPills > 2 && (parseFloat(this.dom.fccInput.value) || 0) >= 9000) {
+                    doseWarning.style.display = 'block';
+                    pillsResultContainer.className = 'bg-yellow-50 p-6 rounded-lg';
+                    doseLabel.className = 'text-sm text-yellow-800';
+                    doseValue.className = 'text-4xl font-extrabold text-yellow-900';
+                } else {
+                    doseWarning.style.display = 'none';
+                    pillsResultContainer.className = 'bg-green-50 p-6 rounded-lg';
+                    doseLabel.className = 'text-sm text-green-800';
+                    doseValue.className = 'text-4xl font-extrabold text-green-700';
+                }
+                this.dom.mainView.style.display = 'none';
+                this.dom.resultsView.style.display = 'block';
+            },
+
+            showLactoseFreeResult(infoText) {
+                this.dom.lactoseFreeInfo.textContent = infoText || "Nessuna informazione aggiuntiva disponibile.";
+                this.dom.mainView.style.display = 'none';
+                this.dom.lactoseFreeView.style.display = 'block';
+            },
+
+            showMainView() {
+                this.dom.resultsView.style.display = 'none';
+                this.dom.lactoseFreeView.style.display = 'none';
+                this.dom.timerView.style.display = 'none';
+                this.dom.mainView.style.display = 'block';
+                this.dom.dishBuilderContainer.style.display = 'none';
+                this.hideError();
+                
+                if (this.timers.timerAnimationRequest) {
+                    cancelAnimationFrame(this.timers.timerAnimationRequest);
+                    this.timers.timerAnimationRequest = null;
+                }
+
+                this.dom.appCard.style.minHeight = '';
+                this.dom.timerView.style.height = '';
+
+                this.resetUIData();
+            },
+            
+            validateField(element) {
+                if (element.value && element.value.trim() !== '') element.classList.remove('border-red-500');
+            },
+
+            validateForm() {
+                let isValid = true;
+                this.hideError();
+                document.querySelectorAll('.border-red-500').forEach(el => el.classList.remove('border-red-500'));
+                if (!this.dom.lactaseSelect.value) { this.dom.lactaseSelect.classList.add('border-red-500'); isValid = false; }
+                if (!this.dom.fccInput.value || parseFloat(this.dom.fccInput.value) <= 0) { this.dom.fccInput.classList.add('border-red-500'); isValid = false; }
+
+                const foodRows = this.dom.foodRowsContainer.querySelectorAll('.food-row');
+                const hasValidFood = Array.from(foodRows).some(row => row.dataset.dishData || (row.querySelector('.food-item').value && row.querySelector('.food-item').value !== 'custom-dish'));
+                
+                if (!hasValidFood) {
+                    isValid = false;
+                    const firstSelect = foodRows[0]?.querySelector('.food-item');
+                    if (firstSelect) firstSelect.classList.add('border-red-500');
+                }
+                if (!isValid) this.showError("Compila i campi evidenziati. Devi aggiungere almeno un alimento.");
+                return isValid;
+            },
+
+            showError(message) { this.dom.errorMessage.textContent = message; this.dom.errorMessage.style.display = 'block'; },
+            hideError() { this.dom.errorMessage.style.display = 'none'; },
+
+            resetUIData(fullReset = false) {
+                 this.dom.dishBuilderContainer.dataset.targetRowId = '';
+                 this.dom.foodRowsContainer.innerHTML = '';
+                 this.addFoodRow();
+                 if (fullReset) { this.dom.lactaseSelect.value = ''; this.dom.fccInput.value = ''; this.dom.infoText.textContent = ''; }
+            },
+            
+            handlePauseTimer() {
+                this.state.isTimerPaused = !this.state.isTimerPaused;
+                const btn = this.dom.pauseTimerBtn;
+
+                if (this.state.isTimerPaused) {
+                    this.state.timerPausedTime = Date.now();
+                    btn.textContent = 'Riprendi Timer';
+                    btn.classList.remove('bg-yellow-400', 'hover:text-yellow-900', 'text-yellow-900');
+                    btn.classList.add('bg-green-400', 'hover:bg-white', 'hover:text-green-900', 'text-green-900', 'border-green-400');
+                    if (this.timers.timerAnimationRequest) {
+                        cancelAnimationFrame(this.timers.timerAnimationRequest);
+                    }
+                } else {
+                    const pauseDuration = Date.now() - this.state.timerPausedTime;
+                    this.state.timerStartTime += pauseDuration; 
+                    btn.textContent = 'Metti in Pausa';
+                    btn.classList.remove('bg-green-400', 'hover:bg-white', 'hover:text-green-900', 'text-green-900', 'border-green-400');
+                    btn.classList.add('bg-yellow-400', 'hover:text-yellow-900', 'text-yellow-900');
+                    this.animateTimer(); 
+                }
+            },
+
+            animateTimer() {
+                const canvas = document.getElementById('timer-canvas'), ctx = canvas.getContext('2d'), timerTextBlue = document.getElementById('timer-text-blue'), timerTextWhite = document.getElementById('timer-text-white'), textClipper = document.getElementById('timer-text-clipper'), centerX = canvas.width/2, centerY = canvas.height/2, radius = centerX - 12;
+                let waveOffset = 0;
+
+                const animate = () => {
+                    const elapsedTime = Date.now() - this.state.timerStartTime;
+                    const remainingTime = Math.max(0, this.state.timerTotalDuration - elapsedTime);
+                    
+                    const timeString = `${String(Math.floor(remainingTime / 60000)).padStart(2, '0')}:${String(Math.floor((remainingTime % 60000) / 1000)).padStart(2, '0')}`;
+                    timerTextBlue.textContent = timeString; timerTextWhite.textContent = timeString;
+                    
+                    ctx.clearRect(0,0,canvas.width,canvas.height); ctx.beginPath(); ctx.arc(centerX, centerY, radius, 0, 2*Math.PI); ctx.strokeStyle='#e5e7eb'; ctx.lineWidth=6; ctx.stroke();
+                    
+                    const waveHeight = canvas.height * (1-(remainingTime/this.state.timerTotalDuration));
+                    textClipper.style.clipPath = `inset(${waveHeight}px 0 0 0)`;
+                    
+                    ctx.save(); ctx.beginPath(); ctx.arc(centerX,centerY,radius-4,0,2*Math.PI); ctx.clip(); ctx.fillStyle='#73c0ec'; ctx.beginPath(); ctx.moveTo(0,waveHeight);
+                    for(let x=0;x<canvas.width;x++) ctx.lineTo(x, waveHeight+Math.sin(x*0.05+waveOffset)*5);
+                    ctx.lineTo(canvas.width,canvas.height); ctx.lineTo(0,canvas.height); ctx.closePath(); ctx.fill(); ctx.restore(); waveOffset+=0.05;
+                    
+                    if(remainingTime > 0) {
+                        this.timers.timerAnimationRequest = requestAnimationFrame(animate); 
+                    } else { 
+                        if(navigator.vibrate) navigator.vibrate([200,100,200]); 
+                        new Tone.Synth().toDestination().triggerAttackRelease("C5","8n"); 
+                        this.timers.timerAnimationRequest = null;
+                    }
+                };
+                
+                if (!this.state.isTimerPaused) {
+                    animate();
+                }
+            },
+
+            startTimer() {
+                Tone.start();
+                
+                if (!this.dom.appCard.style.minHeight) {
+                    this.dom.appCard.style.minHeight = `${this.dom.appCard.offsetHeight}px`;
+                }
+                this.dom.timerView.style.height = '100%';
+
+                this.dom.resultsView.style.display = 'none';
+                this.dom.timerView.style.display = 'flex';
+                
+                if (this.timers.timerAnimationRequest) {
+                    cancelAnimationFrame(this.timers.timerAnimationRequest);
+                }
+
+                this.state.isTimerPaused = false;
+                this.state.timerStartTime = Date.now();
+                const btn = this.dom.pauseTimerBtn;
+                btn.textContent = 'Metti in Pausa';
+                btn.className = 'w-full bg-yellow-400 text-yellow-900 font-bold py-3 px-4 rounded-lg border-2 border-yellow-400 hover:bg-white hover:text-yellow-900 transition-all duration-300 mb-3';
+
+
+                this.animateTimer();
+            }
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            GoodLactApp.init();
+        });
+
+    })();
+    </script>
+</body>
+</html>
