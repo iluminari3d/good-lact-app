@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: 'Montserrat', sans-serif;
+}
+
+body {
+  @apply bg-slate-50 text-slate-900 min-h-screen;
+}
+
+.glass-card {
+  @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-xl rounded-[3rem];
+}
+
+@keyframes pulse-border { 
+  0% { border-color: #d1d5db; } 
+  50% { border-color: #2c7bb6; } 
+  100% { border-color: #d1d5db; } 
+}
+
+.is-analyzing {
+  animation: pulse-border 1.5s infinite;
+}

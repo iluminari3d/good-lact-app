@@ -1,0 +1,24 @@
+/*
+Theme Name: GoodLact Theme
+Theme URI: https://example.com/goodlact-theme
+Author: Gemini
+Author URI: https://gemini.google.com
+Description: Un tema WordPress progettato per integrare l'applicazione GoodLact, con uno stile grafico coerente.
+Version: 1.0
+License: GNU General Public License v2 or later
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
+Tags: custom-background, custom-logo, custom-menu, featured-images, block-styles
+Text Domain: goodlact-theme
+*/
+
+/* * Questo file è necessario per dichiarare il tema a WordPress.
+ * Gli stili principali vengono aggiunti tramite Tailwind CSS, caricato in header.php.
+ * Qui possiamo definire delle variabili CSS globali per coerenza, se necessario.
+*/
+
+:root {
+    --gl-primary: #2c7bb6;
+    --gl-secondary: #73c0ec;
+    --gl-light-bg: #f8fafc; /* bg-slate-50 */
+    --gl-text-dark: #374151; /* text-gray-700 */
+}
