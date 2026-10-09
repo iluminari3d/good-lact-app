@@ -1,49 +1,90 @@
-import { FOODS_DATA } from '../data/goodLactData';
+import type { Certainty, Dish, DishIngredient } from '../types';
+import { newId } from '../lib/storage';
 
-export const callApi = async (type: string, data: any) => {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 800));
+interface AnalyzeInput {
+  description?: string;
+  image?: { mimeType: 'image/jpeg'; data: string };
+}
 
-  console.log(`Local AI Analysis Triggered: ${type}`, data);
+interface RawIngredient {
+  name: string;
+  grams: number;
+  lactosePer100g: number;
+  certainty: Certainty;
+  reason?: string;
+}
 
-  // Heuristic Intelligence Logic
-  if (type === 'getBaseDishWeight') {
-    const name = data.dishName?.toLowerCase() || '';
-    if (name.includes('pizza')) return { weight: 350 };
-    if (name.includes('pasta') || name.includes('lasagna')) return { weight: 300 };
-    if (name.includes('gelato')) return { weight: 150 };
-    return { weight: 200 };
+interface RawAnalysis {
+  dishName: string;
+  portionNote?: string;
+  ingredients: RawIngredient[];
+}
+
+export class AnalysisError extends Error {}
+
+const TIMEOUT_MS = 30_000;
+
+/** Chiede al server di analizzare il piatto (testo e/o foto). */
+export async function analyzeDish(input: AnalyzeInput, signal?: AbortSignal): Promise<Dish> {
+  const timeout = AbortSignal.timeout(TIMEOUT_MS);
+  const combined = signal ? AbortSignal.any([signal, timeout]) : timeout;
+
+  let response: Response;
+  try {
+    response = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+      signal: combined,
+    });
+  } catch (error) {
+    if (signal?.aborted) throw error;
+    throw new AnalysisError(
+      timeout.aborted
+        ? "L'analisi sta impiegando troppo tempo. Riprova."
+        : 'Impossibile contattare il servizio. Controlla la connessione.',
+    );
   }
 
-  if (type === 'analyzeBaseDish') {
-    const name = data.name?.toLowerCase() || '';
-    const hidden: any[] = [];
-
-    // Simple pattern matching for "hidden" or common ingredients
-    if (name.includes('pizza')) {
-        hidden.push({ name: 'Mozzarella', estimatedGrams: 80, lactoseAmount: 0.56, isActive: true });
-        if (name.includes('4 formaggi') || name.includes('quattro')) {
-            hidden.push({ name: 'Gorgonzola', estimatedGrams: 30, lactoseAmount: 0.015, isActive: true });
-            hidden.push({ name: 'Fontina', estimatedGrams: 30, lactoseAmount: 0.03, isActive: true });
-        }
-    }
-
-    if (name.includes('lasagna')) {
-        hidden.push({ name: 'Besciamella', estimatedGrams: 100, lactoseAmount: 4.5, isActive: true });
-        hidden.push({ name: 'Parmigiano', estimatedGrams: 20, lactoseAmount: 0.002, isActive: true });
-    }
-
-    if (name.includes('carbonara')) {
-        hidden.push({ name: 'Pecorino', estimatedGrams: 30, lactoseAmount: 0.003, isActive: true });
-        // Some places use cream!
-        hidden.push({ name: 'Panna (possibile)', estimatedGrams: 50, lactoseAmount: 1.9, isActive: true });
-    }
-
-    return { 
-        estimatedLactose: hidden.reduce((acc, curr) => acc + curr.lactoseAmount, 0),
-        hiddenIngredients: hidden 
-    };
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    const message =
+      body && typeof body === 'object' && 'error' in body && typeof body.error === 'string'
+        ? body.error
+        : "L'analisi non è andata a buon fine. Riprova.";
+    throw new AnalysisError(message);
+  }
+  if (!isRawAnalysis(body)) {
+    throw new AnalysisError('Risposta del servizio non valida. Riprova.');
   }
 
-  return {};
-};
+  const ingredients: DishIngredient[] = body.ingredients.map((i) => ({
+    id: newId(),
+    name: i.name,
+    grams: i.grams,
+    lactosePer100g: i.lactosePer100g,
+    certainty: i.certainty,
+    reason: i.reason,
+    source: 'ai',
+    active: true,
+  }));
+  return { name: body.dishName, portionNote: body.portionNote, ingredients };
+}
+
+function isRawAnalysis(value: unknown): value is RawAnalysis {
+  if (!value || typeof value !== 'object') return false;
+  const v = value as Record<string, unknown>;
+  return (
+    typeof v.dishName === 'string' &&
+    Array.isArray(v.ingredients) &&
+    v.ingredients.every(
+      (i) =>
+        i &&
+        typeof i === 'object' &&
+        typeof (i as RawIngredient).name === 'string' &&
+        Number.isFinite((i as RawIngredient).grams) &&
+        Number.isFinite((i as RawIngredient).lactosePer100g) &&
+        ['certain', 'probable', 'possible'].includes((i as RawIngredient).certainty),
+    )
+  );
+}

@@ -1,0 +1,46 @@
+// Accesso sicuro a localStorage: dati corrotti o storage bloccato
+// (navigazione privata, iframe di terze parti) non devono mai rompere l'app.
+
+const PREFIX = 'goodlact_';
+
+export function load<T>(key: string, fallback: T, isValid?: (v: unknown) => v is T): T {
+  try {
+    const raw = window.localStorage.getItem(PREFIX + key);
+    if (raw == null) return fallback;
+    const parsed: unknown = JSON.parse(raw);
+    if (isValid && !isValid(parsed)) return fallback;
+    return parsed as T;
+  } catch {
+    return fallback;
+  }
+}
+
+export function save(key: string, value: unknown): void {
+  try {
+    window.localStorage.setItem(PREFIX + key, JSON.stringify(value));
+  } catch {
+    /* quota piena o storage non disponibile: si continua senza salvare */
+  }
+}
+
+export function remove(key: string): void {
+  try {
+    window.localStorage.removeItem(PREFIX + key);
+  } catch {
+    /* ignorato */
+  }
+}
+
+/** Data locale in formato AAAA-MM-GG, indipendente dalla lingua del browser. */
+export function todayKey(date: Date = new Date()): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+export function newId(): string {
+  return typeof crypto !== 'undefined' && 'randomUUID' in crypto
+    ? crypto.randomUUID()
+    : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}

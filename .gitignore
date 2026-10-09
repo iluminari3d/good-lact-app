@@ -1,0 +1,18 @@
+# Segreti: non committare mai chiavi API
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+API*.txt
+
+# Sistema / editor
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea
+
+# Build e dipendenze
+node_modules
+dist
+.vercel

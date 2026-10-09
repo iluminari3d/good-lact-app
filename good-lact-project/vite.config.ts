@@ -7,9 +7,17 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      workbox: {
+        // Le chiamate all'analisi non devono mai essere servite dalla cache.
+        navigateFallbackDenylist: [/^\/api\//],
+      },
       manifest: {
         name: 'Good Lact',
-        short_name: 'GoodLact',
+        short_name: 'Good Lact',
+        lang: 'it',
+        start_url: '/',
+        display: 'standalone',
+        background_color: '#f8fafc',
         description: 'Il tuo compagno intelligente per l\'intolleranza al lattosio',
         theme_color: '#2c7bb6',
         icons: [
