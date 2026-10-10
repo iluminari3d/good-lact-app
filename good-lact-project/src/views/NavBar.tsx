@@ -1,5 +1,6 @@
-import { FileText, Home, LayoutGrid, NotebookPen, ScanLine, Settings, ThumbsUp, UtensilsCrossed, History, HelpCircle } from 'lucide-react';
+import { ShieldCheck, FileText, Home, LayoutGrid, NotebookPen, ScanLine, Settings, ThumbsUp, UtensilsCrossed, History, HelpCircle } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { InstallButton } from '../components/InstallButton';
 import { cn } from '../lib/cn';
 import { mobileTabFor, sidebarItemFor, type NavView } from './navigation';
 
@@ -23,6 +24,7 @@ const SIDEBAR: Item[] = [
   { view: 'history', label: 'Storico', icon: <History size={20} /> },
   { view: 'settings', label: 'Profilo', icon: <Settings size={20} /> },
   { view: 'faq', label: 'FAQ e guide', icon: <HelpCircle size={20} /> },
+  { view: 'terms', label: 'Termini e privacy', icon: <ShieldCheck size={20} /> },
 ];
 
 interface Props {
@@ -89,6 +91,7 @@ export function NavBar({ view, onNavigate }: Props) {
             ))}
           </ul>
         </nav>
+        <div className="mt-auto"><InstallButton /></div>
       </aside>
     </>
   );

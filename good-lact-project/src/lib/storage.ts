@@ -44,6 +44,20 @@ export function remove(key: string): void {
   }
 }
 
+/** Cancella tutti i dati dell'app da questo dispositivo (impostazioni, storico, diario...). */
+export function clearAll(): void {
+  try {
+    const keys: string[] = [];
+    for (let i = 0; i < window.localStorage.length; i += 1) {
+      const k = window.localStorage.key(i);
+      if (k?.startsWith(PREFIX)) keys.push(k);
+    }
+    keys.forEach((k) => window.localStorage.removeItem(k));
+  } catch {
+    /* ignorato */
+  }
+}
+
 /** Data locale in formato AAAA-MM-GG, indipendente dalla lingua del browser. */
 export function todayKey(date: Date = new Date()): string {
   const y = date.getFullYear();

@@ -1,9 +1,10 @@
 import { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Download, Upload } from 'lucide-react';
+import { Download, Trash2, Upload } from 'lucide-react';
 import { LACTASE_DATA } from '../data/goodLactData';
 import { applyBackup, createBackup, parseBackup } from '../lib/backup';
 import { cn } from '../lib/cn';
+import { clearAll } from '../lib/storage';
 import { notificationsSupported } from '../hooks/useCoverageTimer';
 import { AccountSection } from './AccountSection';
 import { BackButton } from './ui';
@@ -29,6 +30,7 @@ export function SettingsView({
   const supported = notificationsSupported();
   const fileRef = useRef<HTMLInputElement>(null);
   const [backupMessage, setBackupMessage] = useState<string | null>(null);
+  const [confirmClear, setConfirmClear] = useState(false);
 
   const exportData = () => {
     const blob = new Blob([JSON.stringify(createBackup(), null, 2)], { type: 'application/json' });
@@ -179,6 +181,21 @@ export function SettingsView({
             onChange={(e) => { void importData(e.target.files?.[0]); e.target.value = ''; }}
           />
           {backupMessage && <p role="status" className="text-xs font-semibold text-slate-500">{backupMessage}</p>}
+          {!confirmClear ? (
+            <button type="button" onClick={() => setConfirmClear(true)} className="text-xs font-black text-slate-400 uppercase tracking-widest hover:text-red-500 flex items-center gap-2">
+              <Trash2 size={14} /> Cancella i dati di questo dispositivo
+            </button>
+          ) : (
+            <div className="p-4 bg-red-50 rounded-2xl space-y-3" role="alertdialog" aria-label="Conferma cancellazione dati">
+              <p className="text-xs font-semibold text-red-800">
+                Verranno cancellati profilo, storico, esperienze e diario su questo dispositivo. Se hai un account, i dati nel cloud restano.
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                <button type="button" onClick={() => setConfirmClear(false)} className="py-2 bg-white rounded-xl font-black text-slate-600">Annulla</button>
+                <button type="button" onClick={() => { clearAll(); window.location.reload(); }} className="py-2 bg-red-600 text-white rounded-xl font-black">Cancella</button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </motion.div>

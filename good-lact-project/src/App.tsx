@@ -10,6 +10,7 @@ import { useSymptoms } from './hooks/useSymptoms';
 import { cn } from './lib/cn';
 import { pendingCheck } from './lib/diary';
 import { estimateDose, isLactoseFreeMeal } from './lib/dose';
+import { acceptTerms, loadConsent, needsConsent, type Consent } from './lib/consent';
 import { matchExperiences } from './lib/experiences';
 import { formatTime } from './lib/format';
 import { buildReport } from './lib/report';
@@ -31,7 +32,10 @@ import { ResultsView } from './views/ResultsView';
 import { SettingsView } from './views/SettingsView';
 import { SymptomCheckCard } from './views/SymptomCheckCard';
 import { TimerView } from './views/TimerView';
+import { OfflineBar } from './components/OfflineBar';
+import { ConsentGate } from './views/ConsentGate';
 import { MoreView } from './views/MoreView';
+import { TermsView } from './views/TermsView';
 import { NavBar } from './views/NavBar';
 import type { NavView } from './views/navigation';
 
@@ -73,6 +77,7 @@ function initialSettings(): Settings {
 
 export default function App() {
   const [view, setView] = useState<View>('main');
+  const [consent, setConsent] = useState<Consent | null>(loadConsent);
   const [settings, setSettings] = useState<Settings>(initialSettings);
   const [meal, setMeal] = useState<MealItem[]>([]);
   const [draft, setDraft] = useState<DishDraft | null>(null);
@@ -196,6 +201,8 @@ export default function App() {
 
   return (
     <>
+    {needsConsent(consent) && <ConsentGate updated={consent !== null} onAccept={() => setConsent(acceptTerms())} />}
+    <OfflineBar />
     <NavBar view={view} onNavigate={setView} />
     <div className="lg:pl-64 min-h-screen">
     <div className="max-w-3xl mx-auto p-4 md:p-8 lg:p-12 pb-32 lg:pb-12 min-h-screen flex flex-col font-montserrat antialiased relative">
@@ -350,6 +357,7 @@ export default function App() {
           )}
           {view === 'faq' && <FaqView key="faq" onBack={goMain} />}
           {view === 'more' && <MoreView key="more" onOpen={setView} />}
+          {view === 'terms' && <TermsView key="terms" onBack={() => setView('more')} />}
         </AnimatePresence>
 
         <div className="mt-12 pt-8 border-t border-slate-100 flex justify-between items-center relative z-10 print:hidden">
