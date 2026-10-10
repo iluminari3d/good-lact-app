@@ -243,16 +243,13 @@ export default function App() {
           <p className="text-slate-400 mt-2 font-medium">Il tuo compagno intelligente per l'intolleranza al lattosio</p>
         </div>
 
-        {view === 'main' && (
-          <div className="space-y-6 mb-10">
-            {pending && (
-              <SymptomCheckCard
-                consumption={pending}
-                onAnswer={(severity) => symptoms.answer(pending, severity)}
-                onSkip={() => symptoms.skip(pending)}
-              />
-            )}
-            <ToolsRow onOpen={setView} />
+        {view === 'main' && pending && (
+          <div className="mb-10">
+            <SymptomCheckCard
+              consumption={pending}
+              onAnswer={(severity) => symptoms.answer(pending, severity)}
+              onSkip={() => symptoms.skip(pending)}
+            />
           </div>
         )}
 
@@ -350,6 +347,12 @@ export default function App() {
           )}
           {view === 'faq' && <FaqView key="faq" onBack={goMain} />}
         </AnimatePresence>
+
+        {view === 'main' && (
+          <div className="mt-12">
+            <ToolsRow onOpen={setView} />
+          </div>
+        )}
 
         <div className="mt-12 pt-8 border-t border-slate-100 flex justify-between items-center relative z-10 print:hidden">
           <button type="button" onClick={() => setView('faq')} className="text-slate-400 hover:text-primary transition-all flex items-center gap-3 text-xs font-black uppercase tracking-widest">
