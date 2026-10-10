@@ -15,11 +15,24 @@ export function load<T>(key: string, fallback: T, isValid?: (v: unknown) => v is
   }
 }
 
-export function save(key: string, value: unknown): void {
+/** Evento emesso a ogni salvataggio: la sincronizzazione lo usa per accorgersi delle modifiche. */
+export const SAVE_EVENT = 'goodlact:save';
+
+/** Scrive senza emettere l'evento (usato quando i dati arrivano dal cloud). */
+export function saveSilently(key: string, value: unknown): void {
   try {
     window.localStorage.setItem(PREFIX + key, JSON.stringify(value));
   } catch {
     /* quota piena o storage non disponibile: si continua senza salvare */
+  }
+}
+
+export function save(key: string, value: unknown): void {
+  saveSilently(key, value);
+  try {
+    window.dispatchEvent(new CustomEvent(SAVE_EVENT, { detail: { key } }));
+  } catch {
+    /* ambiente senza eventi: nessun problema */
   }
 }
 

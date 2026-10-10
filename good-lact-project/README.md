@@ -53,7 +53,7 @@ L'app avvisa sempre che **non può sapere della contaminazione** (padelle, frigg
 - **Report per il medico**: ultimi 30 giorni di compresse, pasti e sintomi, stampabile o salvabile in PDF.
 - **Schede informative** nelle FAQ: etichette, farmaci, fuori casa, quando parlare con il medico.
 
-Il login con sincronizzazione tra dispositivi non c'è ancora: richiede un servizio esterno (ad esempio Supabase con server in UE), informativa privacy e cancellazione dei dati. Nel frattempo il backup JSON serve a spostare i dati.
+- **Account e sincronizzazione (Firebase)**: accesso facoltativo con Google o link via email. Con l'account profilo, esperienze, diario e storico si ritrovano su tutti i dispositivi. Impostazioni ed esperienze: vince la modifica più recente; diario e assunzioni: unione per id. I dati stanno in Firestore (`users/{uid}/data/{chiave}`), protetti da `firestore.rules`. Firebase si carica solo se c'è un account. Si può eliminare account e dati dal cloud. Firebase Analytics non è usato. La configurazione web in `src/sync/firebaseConfig.ts` è pubblica per progettazione.
 
 ## Dati e fonti
 

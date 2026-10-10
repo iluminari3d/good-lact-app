@@ -3,7 +3,7 @@ import { isSymptomEntry } from './diary';
 import { load, save } from './storage';
 
 export const BACKUP_KEYS = ['settings', 'today', 'history', 'experiences', 'symptoms'] as const;
-type BackupKey = (typeof BACKUP_KEYS)[number];
+export type BackupKey = (typeof BACKUP_KEYS)[number];
 
 const MAX_BACKUP_CHARS = 2_000_000;
 const isObject = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
@@ -15,6 +15,11 @@ const VALIDATORS: Record<BackupKey, (v: unknown) => boolean> = {
   experiences: (v) => Array.isArray(v) && v.every(isExperience),
   symptoms: (v) => Array.isArray(v) && v.every(isSymptomEntry),
 };
+
+/** True se il valore ha la forma attesa per quella chiave (usato anche per i dati arrivati dal cloud). */
+export function isValidValue(key: BackupKey, value: unknown): boolean {
+  return VALIDATORS[key](value);
+}
 
 export interface Backup {
   app: 'good-lact';

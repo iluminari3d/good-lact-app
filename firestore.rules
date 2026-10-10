@@ -1,0 +1,20 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Ogni utente può leggere e scrivere solo i propri cinque documenti dati.
+    match /users/{uid}/data/{key} {
+      allow read, delete: if request.auth != null && request.auth.uid == uid;
+      allow create, update: if request.auth != null
+        && request.auth.uid == uid
+        && key in ['settings', 'today', 'history', 'experiences', 'symptoms']
+        && request.resource.data.keys().hasOnly(['json', 'updatedAt'])
+        && request.resource.data.json is string
+        && request.resource.data.json.size() < 200000
+        && request.resource.data.updatedAt is number;
+    }
+    // Tutto il resto è chiuso.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

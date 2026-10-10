@@ -5,6 +5,7 @@ import { LACTASE_DATA } from '../data/goodLactData';
 import { applyBackup, createBackup, parseBackup } from '../lib/backup';
 import { cn } from '../lib/cn';
 import { notificationsSupported } from '../hooks/useCoverageTimer';
+import { AccountSection } from './AccountSection';
 import { BackButton } from './ui';
 
 interface Props {
@@ -152,12 +153,13 @@ export function SettingsView({
             <motion.div animate={{ x: notifications ? 24 : 4 }} className="absolute top-1 w-6 h-6 bg-white rounded-full shadow-md" />
           </button>
         </div>
+        <AccountSection />
         <div className="p-8 bg-slate-50 rounded-[3rem] space-y-4">
           <div className="space-y-1">
             <p className="text-sm font-black text-slate-800">Backup dei dati</p>
             <p className="text-xs text-slate-400">
-              Profilo, storico, esperienze e diario restano solo su questo dispositivo. Esporta un file per
-              spostarli su un altro telefono o per tenerne una copia.
+              Una copia dei tuoi dati in un file, utile anche senza account. Senza accesso
+              i dati restano solo su questo dispositivo.
             </p>
           </div>
           <div className="grid grid-cols-2 gap-3">
