@@ -16,6 +16,19 @@ API*.txt
 node_modules
 dist
 .vercel
+node_modules/
+**/node_modules/
+
+# Firebase, chiavi di servizio e log
+.firebase/
+firebase-debug.log
+*.log
+*-key*.json
+*serviceAccount*.json
+*firebase-adminsdk*.json
+
+# Backup dei dati: mai nel repository
+good-lact-backup-*.json
 
 # Worktree degli agenti
 .claude/

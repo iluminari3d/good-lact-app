@@ -1,0 +1,41 @@
+name: Test regole Firestore
+
+on:
+  push:
+    branches: [main, 'fix/**', 'staging/**']
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: regole-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rules:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tests/firestore/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Installa dipendenze dei test
+        working-directory: tests/firestore
+        run: npm ci --no-audit --no-fund
+      - name: Esegui test delle regole (emulatore)
+        working-directory: tests/firestore
+        run: |
+          set +e
+          npx firebase emulators:exec --config ../../firebase.json --only firestore --project demo-good-lact "node --test" > esito.txt 2>&1
+          code=$?
+          cat esito.txt
+          # riporta le righe utili come annotazioni leggibili senza aprire i log
+          grep -E "^ *(not ok|# (pass|fail|tests))" esito.txt | head -40 | while IFS= read -r l; do echo "::notice::${l:0:900}"; done
+          exit $code
