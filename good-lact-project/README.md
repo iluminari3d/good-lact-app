@@ -42,6 +42,19 @@ L'app avvisa sempre che **non può sapere della contaminazione** (padelle, frigg
 
 > È un aiuto pratico, non un parere medico. Va ricordato in ogni schermata di risultato.
 
+## Funzioni per l'intolleranza
+
+- **Timer a cartone di latte**: il latte scende durante i 40 minuti di copertura. Alla fine, se il pasto continua, un tasto registra un'altra compressa e riavvia il timer.
+- **Il mio profilo**: lattasi predefinita, profilo severo, sensibilità, notifiche, backup (esporta/importa JSON). I dati restano sul dispositivo (localStorage); l'import accetta solo chiavi note e dati della forma giusta.
+- **Le mie esperienze**: elenco personale "mi va bene" / "mi dà fastidio". Compare come avviso nel risultato, ma non cambia mai la dose da solo.
+- **Diario sintomi**: 90 minuti dopo l'assunzione chiede come stai. Se i sintomi medi o forti si ripetono suggerisce di *aumentare* la sensibilità (mai di ridurla), ricordando che possono contare tracce di latte o altre cause.
+- **Scanner etichette** (`/api/label`): la foto viene letta dall'AI, ma il verdetto (ok / attenzione / evita) è calcolato dal server con regole fisse. "Senza lattosio" conta solo se il modello cita la frase presente sull'etichetta.
+- **Modalità ristorante** (`/api/menu` + frasi in 5 lingue): foto o testo del menu con piatti ok / chiedi / evita e una nota fissa: dalla foto non si sa cosa succede in cucina.
+- **Report per il medico**: ultimi 30 giorni di compresse, pasti e sintomi, stampabile o salvabile in PDF.
+- **Schede informative** nelle FAQ: etichette, farmaci, fuori casa, quando parlare con il medico.
+
+Il login con sincronizzazione tra dispositivi non c'è ancora: richiede un servizio esterno (ad esempio Supabase con server in UE), informativa privacy e cancellazione dei dati. Nel frattempo il backup JSON serve a spostare i dati.
+
 ## Dati e fonti
 
 I valori di lattosio di partenza (448 alimenti in `src/data/goodLactData.ts` e la tabella
@@ -97,7 +110,8 @@ api/_lib/               riferimento lattosio, validazione, rate limit, client Ge
 src/lib/dose.ts         calcolo della dose (testato in dose.test.ts)
 src/views/              schermate: principale, piatto, risultato, timer, storico…
 src/hooks/              timer di copertura e registro giornaliero
-src/data/               database alimenti, enzimi, FAQ, stato di verifica dei dati
+src/data/               database alimenti, enzimi, FAQ, frasi per il personale, stato di verifica dei dati
+api/label.js, api/menu.js   scanner etichette e lettura menu (stesse protezioni di api/analyze.js)
 scripts/usda.mjs        importatore del lattosio misurato da USDA FoodData Central
 ```
 

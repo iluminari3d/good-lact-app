@@ -146,3 +146,62 @@ describe('flusso completo', () => {
     await waitFor(() => expect(screen.getByText(/cosa stai mangiando/i)).toBeTruthy());
   });
 });
+
+describe('funzioni per l\'intolleranza', () => {
+  it('dopo 90 minuti chiede come stai e salva la risposta nel diario', async () => {
+    const user = userEvent.setup();
+    const at = Date.now() - 100 * 60 * 1000;
+    window.localStorage.setItem('goodlact_today', JSON.stringify({
+      date: new Date().toLocaleDateString('sv-SE'),
+      consumptions: [{ id: 'c1', time: '12:30', at, pills: 2, foodNames: ['Risotto ai funghi'] }],
+    }));
+    render(<App />);
+
+    expect(await screen.findByText(/come è andata dopo il pasto delle 12:30/i)).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: 'Medio' }));
+    expect(screen.queryByText(/come è andata dopo il pasto/i)).toBeNull();
+
+    const saved = JSON.parse(window.localStorage.getItem('goodlact_symptoms') ?? '[]');
+    expect(saved).toHaveLength(1);
+    expect(saved[0]).toMatchObject({ severity: 2, consumptionId: 'c1', pills: 2 });
+  });
+
+  it('un cibo segnato come fastidio compare nell\'avviso del risultato', async () => {
+    const user = userEvent.setup();
+    window.localStorage.setItem('goodlact_experiences', JSON.stringify([
+      { id: 'e1', name: 'burro', verdict: 'bad', createdAt: 1 },
+    ]));
+    mockFetch(() => ({ ok: true, json: FAKE_ANALYSIS }));
+    render(<App />);
+
+    await pickLactase(user);
+    await user.type(screen.getByLabelText(/cosa stai mangiando/i), 'tagliatelle ai funghi');
+    await user.click(screen.getByRole('button', { name: /analizza il piatto/i }));
+    await user.click(await screen.findByRole('button', { name: /aggiungi al pasto/i }));
+    await user.click(await screen.findByRole('button', { name: /calcola la dose/i }));
+
+    const alert = await screen.findByRole('alert');
+    expect(alert.textContent).toMatch(/burro/i);
+  });
+
+  it('dalla barra strumenti si aprono diario, esperienze e report', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    const tools = screen.getByRole('navigation', { name: /strumenti/i });
+
+    await user.click(within(tools).getByRole('button', { name: /esperienze/i }));
+    expect(await screen.findByText('Le mie esperienze')).toBeTruthy();
+    await user.type(screen.getByLabelText(/alimento o ingrediente/i), 'gorgonzola');
+    await user.click(screen.getByRole('button', { name: /mi va bene/i }));
+    expect(JSON.parse(window.localStorage.getItem('goodlact_experiences') ?? '[]')[0]).toMatchObject({ name: 'gorgonzola', verdict: 'ok' });
+
+    await user.click(screen.getByRole('button', { name: /menu/i }));
+    await user.click(within(screen.getByRole('navigation', { name: /strumenti/i })).getByRole('button', { name: /diario/i }));
+    expect(await screen.findByText('Diario sintomi')).toBeTruthy();
+
+    await user.click(screen.getByRole('button', { name: /menu/i }));
+    await user.click(within(screen.getByRole('navigation', { name: /strumenti/i })).getByRole('button', { name: /report/i }));
+    expect(await screen.findByText(/report degli ultimi 30 giorni/i)).toBeTruthy();
+  });
+});
+

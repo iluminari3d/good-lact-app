@@ -73,5 +73,52 @@ export const FAQ_DATA: FaqCategory[] = [
         a: "No: la quantità di burro o di panna in un piatto non si può conoscere con certezza, soprattutto fuori casa. Per questo l'app mostra un intervallo e un livello di confidenza. Il risultato è un aiuto pratico e non sostituisce il parere del medico."
       }
     ]
+  },
+  {
+    category: "Etichette e Lattosio Nascosto",
+    items: [
+      {
+        q: "Che cosa devo cercare sulle etichette?",
+        a: "Cerca latte, lattosio, siero di latte, latte scremato in polvere, panna, burro, yogurt, formaggio, caseinato, lattoalbumina e proteine del latte. In Italia il latte è un allergene da dichiarare in evidenza (di solito in grassetto o maiuscolo) nell'elenco degli ingredienti. Con lo scanner di etichette puoi farti aiutare, ma controlla sempre di aver fotografato l'etichetta intera."
+      },
+      {
+        q: "Cosa significa \"senza lattosio\" in etichetta?",
+        a: "In Italia indica meno di 0,1 g di lattosio ogni 100 g di prodotto. \"A ridotto contenuto di lattosio\" indica meno di 0,5 g/100 g (per latte e latti fermentati). Un prodotto \"senza lattosio\" può comunque contenere proteine del latte: va bene per l'intolleranza al lattosio, ma non per l'allergia al latte."
+      },
+      {
+        q: "\"Può contenere tracce di latte\" è un problema?",
+        a: "È un'avvertenza precauzionale sulla possibile contaminazione in produzione: la quantità non si può conoscere. Per chi reagisce anche a piccole quantità è un rischio possibile, per gli altri di solito è trascurabile. La lattasi non protegge dalle tracce nello stesso modo in cui lavora sul lattosio dei pasti."
+      },
+      {
+        q: "Il lattosio può essere nei farmaci?",
+        a: "Sì: il lattosio è un eccipiente molto usato in compresse e capsule, anche di farmaci e integratori comuni, di solito in quantità piccole. Se sei molto sensibile, controlla il foglio illustrativo (la voce \"eccipienti\") o chiedi al farmacista se esiste una versione senza lattosio."
+      }
+    ]
+  },
+  {
+    category: "Mangiare Fuori Casa",
+    items: [
+      {
+        q: "Cosa chiedere al ristorante?",
+        a: "Chiedi se nel piatto ci sono burro, panna, latte o formaggi (anche nel soffritto, nei risotti e nei sughi), se per cucinarlo vengono usate padelle o utensili in comune con piatti al latte e se la frittura è fatta in una friggitrice condivisa. La modalità Ristorante ha frasi pronte in cinque lingue da mostrare al personale."
+      },
+      {
+        q: "Perché le salse dei fast food contano?",
+        a: "Le salse industriali, quelle cremose o rosa e le salse al formaggio possono contenere latte, siero o lattosio anche se non sembra. L'app le considera come probabili nei panini, burger e street food, ma puoi sempre escluderle dal piatto se sai che non ci sono."
+      },
+      {
+        q: "La pillola mi protegge dalla contaminazione?",
+        a: "No, non in modo affidabile: la lattasi scompone il lattosio, ma non si può dimensionare su una contaminazione di cui non conosci la quantità. Se stai male anche con una dose alta, il diario sintomi e il report ti aiutano a parlarne con il medico."
+      }
+    ]
+  },
+  {
+    category: "Quando Parlarne con il Medico",
+    items: [
+      {
+        q: "Quando non basta l'app?",
+        a: "Se hai sintomi forti o diversi da quelli digestivi (orticaria, gonfiore di labbra o gola, difficoltà a respirare: in questo caso chiama subito il 112), se stai male spesso nonostante la dose, o se hai perso peso senza motivo. Il medico può verificare che si tratti davvero di intolleranza al lattosio e non di allergia o altre condizioni."
+      }
+    ]
   }
 ];

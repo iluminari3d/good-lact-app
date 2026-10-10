@@ -23,3 +23,17 @@ body {
 .is-analyzing {
   animation: pulse-border 1.5s infinite;
 }
+
+/* Onde del latte nel cartone del timer */
+@keyframes milk-wave {
+  from { transform: translateX(-100px); }
+  to { transform: translateX(0); }
+}
+
+.milk-wave-a { animation: milk-wave 3.2s linear infinite; }
+.milk-wave-b { animation: milk-wave 5s linear infinite reverse; }
+
+@media (prefers-reduced-motion: reduce) {
+  .milk-wave-a,
+  .milk-wave-b { animation: none; }
+}

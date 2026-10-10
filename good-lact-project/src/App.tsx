@@ -5,23 +5,37 @@ import { AvatarLogo } from './components/AvatarLogo';
 import { LACTASE_DATA } from './data/goodLactData';
 import { useCoverageTimer } from './hooks/useCoverageTimer';
 import { useDailyLog } from './hooks/useDailyLog';
+import { useExperiences } from './hooks/useExperiences';
+import { useSymptoms } from './hooks/useSymptoms';
 import { cn } from './lib/cn';
+import { pendingCheck } from './lib/diary';
 import { estimateDose, isLactoseFreeMeal } from './lib/dose';
+import { matchExperiences } from './lib/experiences';
 import { formatTime } from './lib/format';
+import { buildReport } from './lib/report';
 import type { PreparedImage } from './lib/image';
 import { load, newId, save } from './lib/storage';
 import { AnalysisError, analyzeDish } from './services/api';
 import type { Dish, DoseEstimate, MealItem } from './types';
+import { DiaryView } from './views/DiaryView';
 import { DishView } from './views/DishView';
+import { ExperiencesView } from './views/ExperiencesView';
 import { FaqView } from './views/FaqView';
 import { HistoryView } from './views/HistoryView';
+import { LabelView } from './views/LabelView';
 import { LactoseFreeView } from './views/LactoseFreeView';
 import { MainView } from './views/MainView';
+import { ReportView } from './views/ReportView';
+import { RestaurantView } from './views/RestaurantView';
 import { ResultsView } from './views/ResultsView';
 import { SettingsView } from './views/SettingsView';
+import { SymptomCheckCard } from './views/SymptomCheckCard';
 import { TimerView } from './views/TimerView';
+import { ToolsRow, type ToolView } from './views/ToolsRow';
 
-type View = 'main' | 'dish' | 'results' | 'timer' | 'lactose-free' | 'history' | 'settings' | 'faq';
+type View =
+  | 'main' | 'dish' | 'results' | 'timer' | 'lactose-free' | 'history' | 'settings' | 'faq'
+  | ToolView;
 
 interface Settings {
   sensitivity: number;
@@ -69,6 +83,14 @@ export default function App() {
 
   const timer = useCoverageTimer(settings.notifications);
   const log = useDailyLog();
+  const experiences = useExperiences();
+  const symptoms = useSymptoms();
+  // "Adesso" cambia ogni minuto: basta per far comparire la domanda sui sintomi.
+  const [minuteNow, setMinuteNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = window.setInterval(() => setMinuteNow(Date.now()), 60_000);
+    return () => window.clearInterval(id);
+  }, []);
 
   useEffect(() => save('settings', settings), [settings]);
   useEffect(() => () => abortRef.current?.abort(), []);
@@ -143,6 +165,26 @@ export default function App() {
     setView('timer');
   };
 
+  const handleTakeAnother = () => {
+    log.addConsumption(1, meal.length > 0 ? meal.map((m) => m.name) : ['Altra compressa']);
+    timer.start();
+  };
+
+  const experienceMatches = useMemo(() => {
+    const names = meal.flatMap((m) => [m.name, ...(m.dish?.ingredients.filter((i) => i.active).map((i) => i.name) ?? [])]);
+    return matchExperiences(names, experiences.experiences);
+  }, [meal, experiences.experiences]);
+
+  const pending = useMemo(
+    () => pendingCheck([...log.consumptions, ...log.history.flatMap((h) => h.consumptions)], symptoms.entries, minuteNow),
+    [log.consumptions, log.history, symptoms.entries, minuteNow],
+  );
+
+  const report = useMemo(
+    () => (view === 'report' ? buildReport(log.consumptions, log.history, symptoms.entries) : null),
+    [view, log.consumptions, log.history, symptoms.entries],
+  );
+
   const handleNewMeal = () => {
     setMeal([]);
     setEstimate(null);
@@ -159,7 +201,7 @@ export default function App() {
         <div aria-hidden className="absolute -bottom-32 -left-32 w-64 h-64 bg-primary-light/20 rounded-full blur-[100px] pointer-events-none animate-pulse" style={{ animationDelay: '1s' }} />
 
         {/* Stato e scorciatoie */}
-        <div className="flex justify-between items-center mb-12 relative z-10">
+        <div className="flex justify-between items-center mb-12 relative z-10 print:hidden">
           <div className="flex items-center gap-4">
             <div className={cn('w-2.5 h-2.5 rounded-full', timer.isRunning ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-slate-300')} />
             <button type="button" onClick={() => setView('timer')} className="flex flex-col text-left">
@@ -192,7 +234,7 @@ export default function App() {
         </div>
 
         {/* Intestazione */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-12 print:hidden">
           <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="flex justify-center mb-4">
             <button type="button" onClick={goMain} aria-label="Torna alla schermata iniziale">
               <img src="/Good Lact Lungo.svg" alt="Good Lact" className="h-24 md:h-28 w-auto hover:scale-105 transition-transform duration-500" />
@@ -200,6 +242,19 @@ export default function App() {
           </motion.div>
           <p className="text-slate-400 mt-2 font-medium">Il tuo compagno intelligente per l'intolleranza al lattosio</p>
         </div>
+
+        {view === 'main' && (
+          <div className="space-y-6 mb-10">
+            {pending && (
+              <SymptomCheckCard
+                consumption={pending}
+                onAnswer={(severity) => symptoms.answer(pending, severity)}
+                onSkip={() => symptoms.skip(pending)}
+              />
+            )}
+            <ToolsRow onOpen={setView} />
+          </div>
+        )}
 
         <AnimatePresence mode="wait">
           {view === 'main' && (
@@ -232,11 +287,20 @@ export default function App() {
             />
           )}
           {view === 'results' && estimate && (
-            <ResultsView key="results" estimate={estimate} onTake={handleTake} onAddMore={goMain} onNewMeal={handleNewMeal} />
+            <ResultsView key="results" estimate={estimate} experiences={experienceMatches} onTake={handleTake} onAddMore={goMain} onNewMeal={handleNewMeal} />
           )}
           {view === 'lactose-free' && <LactoseFreeView key="lactose-free" onEdit={goMain} onNewMeal={handleNewMeal} />}
           {view === 'timer' && (
-            <TimerView key="timer" timeLeft={timer.timeLeft} totalSeconds={timer.totalSeconds} isRunning={timer.isRunning} onStop={timer.stop} onBack={goMain} />
+            <TimerView
+              key="timer"
+              timeLeft={timer.timeLeft}
+              totalSeconds={timer.totalSeconds}
+              isRunning={timer.isRunning}
+              canExtend={timer.canExtend}
+              onStop={timer.stop}
+              onTakeAnother={handleTakeAnother}
+              onBack={goMain}
+            />
           )}
           {view === 'history' && (
             <HistoryView key="history" history={log.history} consumptions={log.consumptions} dailyPills={log.dailyPills} onBack={goMain} />
@@ -250,13 +314,44 @@ export default function App() {
               onSensitivityChange={(sensitivity) => patchSettings({ sensitivity })}
               notifications={settings.notifications}
               onNotificationsChange={(notifications) => patchSettings({ notifications })}
+              lactaseKey={settings.lactaseKey}
+              customFcc={settings.customFcc}
+              onLactaseChange={(lactaseKey) => patchSettings({ lactaseKey })}
+              onCustomFccChange={(customFcc) => patchSettings({ customFcc })}
+              onBack={goMain}
+            />
+          )}
+          {view === 'label' && <LabelView key="label" onBack={goMain} />}
+          {view === 'restaurant' && <RestaurantView key="restaurant" onBack={goMain} />}
+          {view === 'experiences' && (
+            <ExperiencesView key="experiences" experiences={experiences.experiences} onAdd={experiences.add} onRemove={experiences.remove} onBack={goMain} />
+          )}
+          {view === 'diary' && (
+            <DiaryView
+              key="diary"
+              entries={symptoms.entries}
+              sensitivity={settings.sensitivity}
+              onApplySensitivity={(sensitivity) => patchSettings({ sensitivity })}
+              onMarkBad={(name) => experiences.add(name, 'bad')}
+              onRemove={symptoms.remove}
+              onBack={goMain}
+            />
+          )}
+          {view === 'report' && report && (
+            <ReportView
+              key="report"
+              report={report}
+              experiences={experiences.experiences}
+              severe={settings.severe}
+              sensitivity={settings.sensitivity}
+              lactaseName={settings.lactaseKey === 'custom' ? `Personalizzata (${Number(settings.customFcc) || 0} FCC)` : (LACTASE_DATA[settings.lactaseKey]?.name ?? '')}
               onBack={goMain}
             />
           )}
           {view === 'faq' && <FaqView key="faq" onBack={goMain} />}
         </AnimatePresence>
 
-        <div className="mt-12 pt-8 border-t border-slate-100 flex justify-between items-center relative z-10">
+        <div className="mt-12 pt-8 border-t border-slate-100 flex justify-between items-center relative z-10 print:hidden">
           <button type="button" onClick={() => setView('faq')} className="text-slate-400 hover:text-primary transition-all flex items-center gap-3 text-xs font-black uppercase tracking-widest">
             <HelpCircle size={16} /> FAQ e guide
           </button>

@@ -16,3 +16,6 @@ API*.txt
 node_modules
 dist
 .vercel
+
+# Worktree degli agenti
+.claude/

@@ -59,6 +59,7 @@ export function useDailyLog() {
     const entry: Consumption = {
       id: newId(),
       time: new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }),
+      at: Date.now(),
       pills,
       foodNames,
     };

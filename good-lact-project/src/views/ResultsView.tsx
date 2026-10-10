@@ -1,17 +1,20 @@
 import { motion } from 'framer-motion';
 import { AlertTriangle, Plus } from 'lucide-react';
 import { confidenceHint, formatGrams, formatPills, pillsLabel } from '../lib/format';
+import type { ExperienceMatches } from '../lib/experiences';
 import type { DoseEstimate } from '../types';
 import { ConfidenceBadge, CrossContaminationNotice, DataStatusNotice } from './ui';
 
 interface Props {
   estimate: DoseEstimate;
+  /** Cibi del pasto che l'utente ha segnato come "fastidio" o "ok". */
+  experiences?: ExperienceMatches;
   onTake: (pills: number) => void;
   onAddMore: () => void;
   onNewMeal: () => void;
 }
 
-export function ResultsView({ estimate, onTake, onAddMore, onNewMeal }: Props) {
+export function ResultsView({ estimate, experiences, onTake, onAddMore, onNewMeal }: Props) {
   const { pillsRecommended, pillsMin, pillsCautious, confidence } = estimate;
   const { severe } = estimate;
   const showCautiousOption = !severe && pillsCautious > pillsRecommended;
@@ -69,6 +72,21 @@ export function ResultsView({ estimate, onTake, onAddMore, onNewMeal }: Props) {
             Se sai che ci sono o non ci sono, modifica il piatto per un risultato più preciso.
           </p>
         </div>
+      )}
+
+      {experiences && experiences.bad.length > 0 && (
+        <div className="p-5 bg-red-50 border border-red-100 rounded-3xl text-left flex gap-3" role="alert">
+          <AlertTriangle size={20} className="text-red-500 shrink-0 mt-0.5" />
+          <p className="text-sm text-red-800 font-medium">
+            In passato ti hanno dato fastidio: <strong>{experiences.bad.join(', ')}</strong>. La dose non lo tiene in
+            conto: valuta se mangiarli.
+          </p>
+        </div>
+      )}
+      {experiences && experiences.ok.length > 0 && (
+        <p className="text-xs text-slate-400 font-medium text-left px-2">
+          Di solito ti vanno bene: {experiences.ok.join(', ')}. Resta un promemoria: la dose non cambia.
+        </p>
       )}
 
       <CrossContaminationNotice />

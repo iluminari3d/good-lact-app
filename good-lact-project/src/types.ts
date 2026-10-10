@@ -35,6 +35,8 @@ export interface MealItem {
 export interface Consumption {
   id: string;
   time: string;
+  /** Istante dell'assunzione (ms); assente nelle registrazioni più vecchie. */
+  at?: number;
   pills: number;
   foodNames: string[];
 }
@@ -66,4 +68,28 @@ export interface DoseEstimate {
   uncertainShare: number;
   /** Ingredienti che pesano di più sull'incertezza. */
   mainUncertainties: string[];
+}
+
+/** Cibo che l'utente ha provato: 'ok' = lo tollera, 'bad' = gli ha dato fastidio. */
+export type ExperienceVerdict = 'ok' | 'bad';
+
+export interface Experience {
+  id: string;
+  name: string;
+  verdict: ExperienceVerdict;
+  createdAt: number;
+}
+
+/** 0 = nessun sintomo, 1 = lieve, 2 = medio, 3 = forte. */
+export type SymptomSeverity = 0 | 1 | 2 | 3;
+
+export interface SymptomEntry {
+  id: string;
+  at: number;
+  severity: SymptomSeverity;
+  consumptionId?: string;
+  foodNames: string[];
+  pills: number;
+  /** True se l'utente ha scelto di non rispondere: non conta nelle statistiche. */
+  skipped?: boolean;
 }
