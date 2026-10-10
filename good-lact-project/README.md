@@ -55,6 +55,8 @@ L'app avvisa sempre che **non può sapere della contaminazione** (padelle, frigg
 
 - **Account e sincronizzazione (Firebase)**: accesso facoltativo con Google o link via email. Con l'account profilo, esperienze, diario e storico si ritrovano su tutti i dispositivi. Impostazioni ed esperienze: vince la modifica più recente; diario e assunzioni: unione per id. I dati stanno in Firestore (`users/{uid}/data/{chiave}`), protetti da `firestore.rules`. Firebase si carica solo se c'è un account. Si può eliminare account e dati dal cloud. Firebase Analytics non è usato. La configurazione web in `src/sync/firebaseConfig.ts` è pubblica per progettazione.
 
+- **Termini e privacy** con consenso versionato al primo avvio (e quando cambiano: si aggiorna `TERMS_VERSION` in `src/lib/consent.ts`), cancellazione dei dati del dispositivo, avviso offline e pulsante "Installa l'app". Il testo è in `src/data/terms.ts` e va fatto rivedere prima della pubblicazione.
+
 ## Dati e fonti
 
 I valori di lattosio di partenza (448 alimenti in `src/data/goodLactData.ts` e la tabella
