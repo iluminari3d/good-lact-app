@@ -49,7 +49,7 @@ export default async function handler(req, res) {
   try {
     const raw = await analyzeWithGemini(parsed, {
       apiKey,
-      model: process.env.GEMINI_MODEL || 'gemini-3.8-flash',
+      model: process.env.GEMINI_MODEL || 'gemini-flash-latest',
     });
     const analysis = sanitizeAnalysis(raw, LACTOSE_REFERENCE, MAX_OTHER_PER100G);
     if (!analysis) throw new UpstreamError('analisi non valida');
