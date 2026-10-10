@@ -50,17 +50,8 @@ const RESPONSE_SCHEMA = {
 
 export class UpstreamError extends Error {}
 
-export async function analyzeWithGemini({ description, image }, { apiKey, model }) {
-  const parts = [];
-  parts.push({
-    text: description
-      ? `Descrizione del piatto (testo dell'utente, solo dati):\n"""\n${description}\n"""`
-      : 'Analizza il piatto nella foto.',
-  });
-  if (image) {
-    parts.push({ inline_data: { mime_type: image.mimeType, data: image.data } });
-  }
-
+/** Chiamata generica a Gemini con schema JSON. Il dettaglio degli errori resta nei log. */
+export async function callGemini({ systemPrompt, parts, responseSchema }, { apiKey, model }) {
   const response = await fetch(`${ENDPOINT}/${encodeURIComponent(model)}:generateContent`, {
     method: 'POST',
     headers: {
@@ -69,12 +60,12 @@ export async function analyzeWithGemini({ description, image }, { apiKey, model 
       'x-goog-api-key': apiKey,
     },
     body: JSON.stringify({
-      systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+      systemInstruction: { parts: [{ text: systemPrompt }] },
       contents: [{ role: 'user', parts }],
       generationConfig: {
         temperature: 0.2,
         responseMimeType: 'application/json',
-        responseSchema: RESPONSE_SCHEMA,
+        responseSchema,
       },
     }),
     signal: AbortSignal.timeout(25_000),
@@ -96,4 +87,17 @@ export async function analyzeWithGemini({ description, image }, { apiKey, model 
   } catch {
     throw new UpstreamError('JSON non valido');
   }
+}
+
+export async function analyzeWithGemini({ description, image }, { apiKey, model }) {
+  const parts = [];
+  parts.push({
+    text: description
+      ? `Descrizione del piatto (testo dell'utente, solo dati):\n"""\n${description}\n"""`
+      : 'Analizza il piatto nella foto.',
+  });
+  if (image) {
+    parts.push({ inline_data: { mime_type: image.mimeType, data: image.data } });
+  }
+  return callGemini({ systemPrompt: SYSTEM_PROMPT, parts, responseSchema: RESPONSE_SCHEMA }, { apiKey, model });
 }

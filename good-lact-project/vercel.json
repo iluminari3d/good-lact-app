@@ -7,6 +7,12 @@
   "functions": {
     "api/analyze.js": {
       "maxDuration": 30
+    },
+    "api/label.js": {
+      "maxDuration": 30
+    },
+    "api/menu.js": {
+      "maxDuration": 30
     }
   },
   "headers": [

@@ -15,6 +15,27 @@ export function cleanText(value, maxLength) {
     .slice(0, maxLength);
 }
 
+// Validazione di un'immagine { mimeType, data } (base64 puro). Condivisa da tutti gli endpoint.
+export function parseImage(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return { error: 'Immagine non valida.' };
+  }
+  const { mimeType, data } = value;
+  if (!ALLOWED_MIME.has(mimeType)) {
+    return { error: 'Formato immagine non supportato (usa JPEG, PNG o WebP).' };
+  }
+  if (typeof data !== 'string' || data.length === 0) {
+    return { error: 'Immagine vuota.' };
+  }
+  if (data.length > MAX_IMAGE_BASE64) {
+    return { error: 'Immagine troppo grande.' };
+  }
+  if (!/^[A-Za-z0-9+/]+={0,2}$/.test(data)) {
+    return { error: 'Immagine non valida.' };
+  }
+  return { image: { mimeType, data } };
+}
+
 export function parseRequest(body) {
   if (!body || typeof body !== 'object' || Array.isArray(body)) {
     return { error: 'Richiesta non valida.' };
@@ -24,21 +45,9 @@ export function parseRequest(body) {
   let image = null;
 
   if (body.image != null) {
-    if (typeof body.image !== 'object') return { error: 'Immagine non valida.' };
-    const { mimeType, data } = body.image;
-    if (!ALLOWED_MIME.has(mimeType)) {
-      return { error: 'Formato immagine non supportato (usa JPEG, PNG o WebP).' };
-    }
-    if (typeof data !== 'string' || data.length === 0) {
-      return { error: 'Immagine vuota.' };
-    }
-    if (data.length > MAX_IMAGE_BASE64) {
-      return { error: 'Immagine troppo grande.' };
-    }
-    if (!/^[A-Za-z0-9+/]+={0,2}$/.test(data)) {
-      return { error: 'Immagine non valida.' };
-    }
-    image = { mimeType, data };
+    const parsedImage = parseImage(body.image);
+    if (parsedImage.error) return { error: parsedImage.error };
+    image = parsedImage.image;
   }
 
   if (!description && !image) {
