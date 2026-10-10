@@ -1,3 +1,12 @@
+/**
+ * Quanto è affidabile il valore di lattosio di una voce:
+ * - measured: misurato e tratto da una fonte ufficiale (indicata in `source`)
+ * - estimated: stimato da una fonte ufficiale per un alimento simile
+ * - unverified: senza fonte (valore di partenza, da verificare)
+ * Se manca il campo la voce è considerata "unverified".
+ */
+export type Reliability = 'measured' | 'estimated' | 'unverified';
+
 export interface FoodInfo {
   name: string;
   lactosePer100g?: number;
@@ -7,6 +16,9 @@ export interface FoodInfo {
   defaultUnit?: string;
   category?: string;
   note?: string;
+  reliability?: Reliability;
+  /** Fonte del dato, es. "USDA FDC 170851" o "BDA IEO". */
+  source?: string;
 }
 
 export interface UnitInfo {

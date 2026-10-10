@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { CheckCircle2 } from 'lucide-react';
+import { CrossContaminationNotice, DataStatusNotice } from './ui';
 
 export function LactoseFreeView({ onNewMeal, onEdit }: { onNewMeal: () => void; onEdit: () => void }) {
   return (
@@ -11,6 +12,8 @@ export function LactoseFreeView({ onNewMeal, onEdit }: { onNewMeal: () => void; 
           In questo pasto non risulta lattosio, oppure solo tracce trascurabili.
         </p>
       </div>
+      <CrossContaminationNotice />
+      <DataStatusNotice />
       <p className="text-[11px] text-slate-300 font-medium leading-relaxed px-4">
         Se nel piatto ci sono ingredienti che non conosci (salse, impasti, condimenti pronti), controlla l'etichetta o chiedi a chi l'ha preparato.
       </p>

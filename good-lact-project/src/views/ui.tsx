@@ -1,4 +1,5 @@
-import { ChevronLeft } from 'lucide-react';
+import { AlertTriangle, ChevronLeft, Info } from 'lucide-react';
+import { REFERENCE_DATA_VERIFIED } from '../data/meta';
 import { cn } from '../lib/cn';
 import type { Certainty, Confidence } from '../types';
 
@@ -52,3 +53,31 @@ export function ConfidenceBadge({ confidence }: { confidence: Confidence }) {
   );
 }
 
+
+/** La lattasi scompone il lattosio ma non protegge dalle tracce di latte per contaminazione. */
+export function CrossContaminationNotice() {
+  return (
+    <div className="p-5 bg-amber-50 border border-amber-100 rounded-3xl text-left flex gap-3">
+      <AlertTriangle size={20} className="text-amber-500 shrink-0 mt-0.5" />
+      <p className="text-sm text-amber-800 font-medium">
+        <strong>Contaminazione:</strong> l'app non può sapere se il piatto è stato a contatto con latte
+        (padelle, friggitrici, affettatrici o taglieri in comune). Se reagisci anche alle tracce, chiedi a chi
+        lo prepara.
+      </p>
+    </div>
+  );
+}
+
+/** Finché i valori non vengono verificati su fonti ufficiali l'app lo dice apertamente. */
+export function DataStatusNotice() {
+  if (REFERENCE_DATA_VERIFIED) return null;
+  return (
+    <div className="p-5 bg-slate-50 border border-slate-100 rounded-3xl text-left flex gap-3">
+      <Info size={20} className="text-slate-400 shrink-0 mt-0.5" />
+      <p className="text-sm text-slate-500 font-medium">
+        I valori di lattosio sono <strong>indicativi</strong>: non sono ancora verificati su fonti ufficiali.
+        Per questo il calcolo applica margini di sicurezza più ampi.
+      </p>
+    </div>
+  );
+}

@@ -57,8 +57,10 @@ export interface DoseEstimate {
   pillsMin: number;
   pillsExpected: number;
   pillsCautious: number;
-  /** Dose finale consigliata: se la confidenza è bassa coincide con la prudente. */
+  /** Dose finale consigliata: se la confidenza è bassa (o in modalità severa) coincide con la prudente. */
   pillsRecommended: number;
+  /** True se il calcolo è stato fatto con il profilo di intolleranza severa. */
+  severe: boolean;
   confidence: Confidence;
   /** Quota (0-1) del lattosio massimo che dipende da ingredienti non certi. */
   uncertainShare: number;

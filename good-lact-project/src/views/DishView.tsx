@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle2, Plus, Search, Trash2 } from 'lucide-react';
 import { FOODS_DATA } from '../data/goodLactData';
-import { NEGLIGIBLE_LACTOSE_G, defaultQuantityFor } from '../lib/dose';
+import { defaultQuantityFor, negligibleFor } from '../lib/dose';
 import { cn } from '../lib/cn';
 import { formatGrams } from '../lib/format';
 import { newId } from '../lib/storage';
@@ -12,6 +12,7 @@ import { BackButton, CertaintyBadge } from './ui';
 interface Props {
   dish: Dish;
   isNew: boolean;
+  severe: boolean;
   onChange: (dish: Dish) => void;
   onConfirm: () => void;
   onCancel: () => void;
@@ -21,7 +22,7 @@ function lactoseOf(ing: DishIngredient): number {
   return (Math.max(ing.grams, 0) / 100) * Math.max(ing.lactosePer100g, 0);
 }
 
-export function DishView({ dish, isNew, onChange, onConfirm, onCancel }: Props) {
+export function DishView({ dish, isNew, severe, onChange, onConfirm, onCancel }: Props) {
   const [search, setSearch] = useState('');
   const term = search.trim().toLowerCase();
   const results =
@@ -92,7 +93,7 @@ export function DishView({ dish, isNew, onChange, onConfirm, onCancel }: Props) 
       <div className="space-y-3">
         {dish.ingredients.map((ing) => {
           const lactose = lactoseOf(ing);
-          const negligible = lactose < NEGLIGIBLE_LACTOSE_G;
+          const negligible = lactose < negligibleFor(severe) || lactose <= 0;
           return (
             <div
               key={ing.id}

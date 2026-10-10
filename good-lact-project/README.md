@@ -9,10 +9,24 @@ confidenza.
 ## Come funziona
 
 1. **Scegli l'enzima** che usi (Lactoint, Lactojoy, Intoleran…) o inserisci gli FCC a mano.
-2. **Descrivi o fotografa** il piatto, oppure aggiungi un alimento dal database (448 voci).
+2. **Descrivi o fotografa** il piatto, oppure aggiungi un alimento dal database (448 voci di partenza, ancora da verificare: vedi "Dati e fonti").
 3. **Controlla gli ingredienti** stimati: correggi i grammi, escludi quelli che sai non esserci, conferma quelli certi.
 4. **Calcola**: ottieni dose consigliata, dose minima e dose prudente.
 5. **Assumi** e parte la copertura di 40 minuti.
+
+### Intolleranza severa (attiva di default)
+
+Pensata per chi reagisce anche a piccole quantità. Si disattiva dalle impostazioni.
+Rispetto al profilo standard:
+
+- Soglia di tracce trascurabili ridotta da 0,1 g a **0,02 g** di lattosio per ingrediente (`SEVERE.negligible` in `src/lib/dose.ts`).
+- Gli ingredienti **"possibili"** (es. panna nella carbonara) entrano nella dose.
+- La dose consigliata è **sempre quella prudente**, mai la minima.
+- Margini più larghi: 50% sui grammi stimati dall'AI, 20% su quelli inseriti da te, fino al 50% sui valori del database non verificati.
+- Il valore numerico conta anche per gli alimenti segnati "senza lattosio" (es. gorgonzola dolce); i formaggi con lattosio 0 restano a zero.
+- Test: la dose severa non è mai inferiore a quella standard.
+
+L'app avvisa sempre che **non può sapere della contaminazione** (padelle, friggitrici, affettatrici in comune): la lattasi scompone il lattosio ma non protegge dalle tracce di latte.
 
 ### Come nasce la stima
 
@@ -27,6 +41,22 @@ confidenza.
 - Formula: `FCC = lattosio (g) × 1000 × fattore di sensibilità`, compresse arrotondate per eccesso a ½. La costante è `FCC_PER_GRAM_LACTOSE` in `src/lib/dose.ts`.
 
 > È un aiuto pratico, non un parere medico. Va ricordato in ogni schermata di risultato.
+
+## Dati e fonti
+
+I valori di lattosio di partenza (448 alimenti in `src/data/goodLactData.ts` e la tabella
+per categoria in `api/_lib/reference.js`) **non derivano da fonti ufficiali verificate**.
+Finché `REFERENCE_DATA_VERIFIED` in `src/data/meta.ts` è `false`, l'app lo scrive nei
+risultati e usa margini più ampi. Ogni voce può avere `reliability`
+(`measured` | `estimated` | `unverified`, predefinito `unverified`) e `source`.
+
+Per sostituirli con dati veri:
+
+1. Scarica gratis da <https://fdc.nal.usda.gov/download-datasets> i CSV di **Foundation Foods** e **SR Legacy**.
+2. `npm run db:usda -- <cartella-foundation> <cartella-sr-legacy> --out src/data/usda-lactose.json`
+3. Il file contiene solo gli alimenti con lattosio **misurato** (zero compreso). Un alimento assente è "non analizzato", cioè sconosciuto, non zero.
+4. Associa le voci dell'app ai record USDA (`reliability: 'measured'`, `source: 'USDA FDC <id>'`). Per i prodotti italiani assenti da USDA (stracchino, burrata, ecc.) servono la banca dati BDA dell'IEO (<https://bda.ieo.it>) o le tabelle CREA, oppure l'etichetta del prodotto.
+5. Quando i dati principali sono verificati, imposta `REFERENCE_DATA_VERIFIED = true`.
 
 ## Sviluppo
 
@@ -67,7 +97,8 @@ api/_lib/               riferimento lattosio, validazione, rate limit, client Ge
 src/lib/dose.ts         calcolo della dose (testato in dose.test.ts)
 src/views/              schermate: principale, piatto, risultato, timer, storico…
 src/hooks/              timer di copertura e registro giornaliero
-src/data/               database alimenti, enzimi, FAQ
+src/data/               database alimenti, enzimi, FAQ, stato di verifica dei dati
+scripts/usda.mjs        importatore del lattosio misurato da USDA FoodData Central
 ```
 
 ## Prossimi passi pensati (non ancora attivi)

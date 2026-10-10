@@ -59,6 +59,10 @@ describe('flusso completo', () => {
     // Risultato con confidenza e dose
     expect(await screen.findByText('La tua dose')).toBeTruthy();
     expect(screen.getByText(/confidenza/i)).toBeTruthy();
+    // Di default l'app parte in modalità severa e avvisa su contaminazione e dati non verificati
+    expect(screen.getByText(/intolleranza severa, con margine di sicurezza/i)).toBeTruthy();
+    expect(screen.getByText(/contaminazione:/i)).toBeTruthy();
+    expect(screen.getByText(/non sono ancora verificati su fonti ufficiali/i)).toBeTruthy();
 
     await user.click(screen.getByRole('button', { name: /^assumo/i }));
 
@@ -108,6 +112,29 @@ describe('flusso completo', () => {
 
     const calc = await screen.findByRole('button', { name: /calcola la dose/i });
     expect((calc as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it('la modalità severa si può disattivare dalle impostazioni e la scelta resta salvata', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(screen.getByRole('button', { name: /impostazioni/i }));
+    const toggle = await screen.findByRole('switch', { name: /intolleranza severa/i });
+    expect(toggle.getAttribute('aria-checked')).toBe('true');
+    await user.click(toggle);
+    expect(toggle.getAttribute('aria-checked')).toBe('false');
+    expect(JSON.parse(window.localStorage.getItem('goodlact_settings') ?? '{}').severe).toBe(false);
+  });
+
+  it('impostazioni salvate prima della modalità severa partono comunque prudenti', async () => {
+    window.localStorage.setItem(
+      'goodlact_settings',
+      JSON.stringify({ sensitivity: 1, notifications: false, lactaseKey: '', customFcc: '' }),
+    );
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(screen.getByRole('button', { name: /impostazioni/i }));
+    const toggle = await screen.findByRole('switch', { name: /intolleranza severa/i });
+    expect(toggle.getAttribute('aria-checked')).toBe('true');
   });
 
   it('dati corrotti nel localStorage non rompono l\'app', async () => {

@@ -167,3 +167,68 @@ describe('correzione dati: besciamella non è più "senza lattosio"', () => {
     expect(estimateDose(meal, 3000, 1).pillsRecommended).toBeGreaterThan(0);
   });
 });
+
+describe('modalità intolleranza severa', () => {
+  const severe = { severe: true };
+
+  it('conta anche piccole quantità che in modalità standard sono trascurate', () => {
+    // 15 g di burro = 0,09 g di lattosio
+    const meal = [dishOf([ing({ name: 'Burro', grams: 15, lactosePer100g: 0.6, certainty: 'probable' })])];
+    expect(estimateDose(meal, 3000, 1).pillsRecommended).toBe(0);
+    expect(estimateDose(meal, 3000, 1, severe).pillsRecommended).toBeGreaterThan(0);
+  });
+
+  it('gli ingredienti "possibili" entrano nella dose attesa', () => {
+    const meal = [dishOf([ing({ name: 'Panna', grams: 40, lactosePer100g: 3.2, certainty: 'possible' })])];
+    expect(estimateDose(meal, 3000, 1).lactoseExpected).toBe(0);
+    expect(estimateDose(meal, 3000, 1, severe).lactoseExpected).toBeCloseTo(1.28);
+  });
+
+  it('la dose consigliata è sempre quella prudente, mai sotto lo standard', () => {
+    const meal = [dishOf([ing({ grams: 100, lactosePer100g: 4, certainty: 'certain' })])];
+    const std = estimateDose(meal, 3000, 1);
+    const sev = estimateDose(meal, 3000, 1, severe);
+    expect(sev.severe).toBe(true);
+    expect(sev.pillsRecommended).toBe(sev.pillsCautious);
+    expect(sev.pillsRecommended).toBeGreaterThanOrEqual(std.pillsRecommended);
+  });
+
+  it('mai una dose più bassa dello standard, per nessuna combinazione', () => {
+    const certainties = ['certain', 'probable', 'possible'] as const;
+    for (const certainty of certainties) {
+      for (const grams of [5, 15, 40, 120, 300]) {
+        for (const per100 of [0.3, 0.6, 3.2, 4.8]) {
+          const meal = [dishOf([ing({ grams, lactosePer100g: per100, certainty })])];
+          const std = estimateDose(meal, 3000, 1);
+          const sev = estimateDose(meal, 3000, 1, severe);
+          expect(sev.pillsRecommended).toBeGreaterThanOrEqual(std.pillsRecommended);
+        }
+      }
+    }
+  });
+
+  it('usa il valore numerico anche per gli alimenti segnati "senza lattosio"', () => {
+    const gorgonzola: MealItem[] = [
+      { id: 'g', kind: 'food', name: 'Gorgonzola dolce', foodKey: 'gorgonzola-dolce', quantity: 100, unit: 'grammi' },
+    ];
+    expect(estimateDose(gorgonzola, 3000, 1).lactoseCautious).toBe(0);
+    expect(estimateDose(gorgonzola, 3000, 1, severe).pillsRecommended).toBeGreaterThan(0);
+  });
+
+  it('i formaggi con lattosio zero restano a zero', () => {
+    const grana: MealItem[] = [
+      { id: 'g', kind: 'food', name: 'Grana Padano', foodKey: 'grana-padano', quantity: 100, unit: 'grammi' },
+    ];
+    expect(estimateDose(grana, 3000, 1, severe).lactoseCautious).toBe(0);
+  });
+
+  it('i dati non verificati hanno un margine più largo di quelli misurati', () => {
+    const ricotta: MealItem[] = [
+      { id: 'r', kind: 'food', name: 'Ricotta vaccina', foodKey: 'ricotta-vaccina', quantity: 100, unit: 'grammi' },
+    ];
+    const std = estimateDose(ricotta, 3000, 1);
+    const sev = estimateDose(ricotta, 3000, 1, severe);
+    expect(sev.lactoseCautious / sev.lactoseExpected).toBeCloseTo(1.5);
+    expect(std.lactoseCautious / std.lactoseExpected).toBeCloseTo(1.1);
+  });
+});

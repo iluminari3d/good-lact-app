@@ -6,12 +6,14 @@ import { BackButton } from './ui';
 interface Props {
   sensitivity: number;
   onSensitivityChange: (value: number) => void;
+  severe: boolean;
+  onSevereChange: (value: boolean) => void;
   notifications: boolean;
   onNotificationsChange: (value: boolean) => void;
   onBack: () => void;
 }
 
-export function SettingsView({ sensitivity, onSensitivityChange, notifications, onNotificationsChange, onBack }: Props) {
+export function SettingsView({ sensitivity, onSensitivityChange, severe, onSevereChange, notifications, onNotificationsChange, onBack }: Props) {
   const supported = notificationsSupported();
 
   const toggleNotifications = async () => {
@@ -26,6 +28,25 @@ export function SettingsView({ sensitivity, onSensitivityChange, notifications, 
       <BackButton label="Menu" onClick={onBack} />
       <h2 className="text-3xl font-black text-slate-800">Impostazioni</h2>
       <div className="space-y-8">
+        <div className="p-8 bg-slate-50 rounded-[3rem] flex items-center justify-between gap-4">
+          <div className="space-y-1">
+            <p className="text-sm font-black text-slate-800">Intolleranza severa</p>
+            <p className="text-xs text-slate-400">
+              Per chi reagisce anche a piccole quantità: conta anche le tracce, include gli ingredienti solo
+              possibili e propone sempre la dose prudente.
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={severe}
+            aria-label="Intolleranza severa"
+            onClick={() => onSevereChange(!severe)}
+            className={cn('w-14 h-8 rounded-full relative transition-all shrink-0', severe ? 'bg-emerald-500' : 'bg-slate-200')}
+          >
+            <motion.div animate={{ x: severe ? 24 : 4 }} className="absolute top-1 w-6 h-6 bg-white rounded-full shadow-md" />
+          </button>
+        </div>
         <div className="p-8 bg-slate-50 rounded-[3rem] space-y-6">
           <div className="flex justify-between items-center">
             <div className="space-y-1">

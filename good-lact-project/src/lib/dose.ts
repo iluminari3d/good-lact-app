@@ -1,15 +1,61 @@
 import { FOODS_DATA, UNITS_DATA } from '../data/goodLactData';
+import type { FoodInfo, Reliability } from '../data/goodLactData';
 import type { Confidence, DishIngredient, DoseEstimate, MealItem } from '../types';
 
 /** Quanti FCC servono per grammo di lattosio (formula storica di Good Lact). */
 export const FCC_PER_GRAM_LACTOSE = 1000;
 
-/** Tolleranza sui grammi: una stima AI sbaglia più di un peso dichiarato. */
-const TOLERANCE_AI = 0.3;
-const TOLERANCE_USER = 0.1;
+export interface DoseOptions {
+  /** Intolleranza severa: nessun margine di rischio accettato. */
+  severe?: boolean;
+}
 
-/** Sotto questa quantità (g di lattosio per ingrediente) il contributo è trascurabile. */
-export const NEGLIGIBLE_LACTOSE_G = 0.1;
+interface Profile {
+  /** Sotto questa quantità (g di lattosio per ingrediente) il contributo è trascurabile. */
+  negligible: number;
+  /** Tolleranza sui grammi: una stima AI sbaglia più di un peso dichiarato. */
+  tolAi: number;
+  tolUser: number;
+  /** Tolleranza sui valori di un alimento del database, per affidabilità del dato. */
+  tolFood: Record<Reliability, number>;
+  /** Gli ingredienti "possibili" entrano nella dose attesa. */
+  includePossible: boolean;
+  /** Si usa il valore numerico anche per gli alimenti segnati "senza lattosio". */
+  ignoreLactoseFreeFlag: boolean;
+}
+
+const STANDARD: Profile = {
+  negligible: 0.1,
+  tolAi: 0.3,
+  tolUser: 0.1,
+  tolFood: { measured: 0.1, estimated: 0.1, unverified: 0.1 },
+  includePossible: false,
+  ignoreLactoseFreeFlag: false,
+};
+
+/**
+ * Profilo per chi reagisce anche a quantità minime. Scelte da confermare:
+ * 0,02 g è meno di mezzo cucchiaino di latte (circa 0,25 g di lattosio ogni 5 ml).
+ */
+const SEVERE: Profile = {
+  negligible: 0.02,
+  tolAi: 0.5,
+  tolUser: 0.2,
+  tolFood: { measured: 0.2, estimated: 0.3, unverified: 0.5 },
+  includePossible: true,
+  ignoreLactoseFreeFlag: true,
+};
+
+const profileFor = (severe?: boolean): Profile => (severe ? SEVERE : STANDARD);
+
+/** Soglia sotto cui un ingrediente viene mostrato come "tracce trascurabili". */
+export function negligibleFor(severe?: boolean): number {
+  return profileFor(severe).negligible;
+}
+
+export function reliabilityOf(food: FoodInfo): Reliability {
+  return food.reliability ?? 'unverified';
+}
 
 /** Soglie per la confidenza, sulla quota di lattosio non certo. */
 const HIGH_CONFIDENCE_MAX_SHARE = 0.2;
@@ -32,34 +78,38 @@ interface Contribution {
   certain: boolean;
 }
 
-function fromIngredient(ing: DishIngredient): Contribution {
+function fromIngredient(ing: DishIngredient, profile: Profile): Contribution {
   const raw = (Math.max(ing.grams, 0) / 100) * Math.max(ing.lactosePer100g, 0);
-  const base = raw < NEGLIGIBLE_LACTOSE_G ? 0 : raw;
-  const tol = ing.source === 'ai' ? TOLERANCE_AI : TOLERANCE_USER;
+  const base = raw < profile.negligible ? 0 : raw;
+  const tol = ing.source === 'ai' ? profile.tolAi : profile.tolUser;
   const certain = ing.certainty === 'certain';
+  const counted = ing.certainty !== 'possible' || profile.includePossible;
   return {
     name: ing.name,
     min: certain ? base * (1 - tol) : 0,
-    expected: ing.certainty === 'possible' ? 0 : base,
+    expected: counted ? base : 0,
     cautious: base * (1 + tol),
     certain,
   };
 }
 
-function fromFood(item: MealItem): Contribution | null {
+function fromFood(item: MealItem, profile: Profile): Contribution | null {
   const food = item.foodKey ? FOODS_DATA[item.foodKey] : undefined;
-  if (!food || food.isLactoseFree) return null;
+  if (!food) return null;
+  if (food.isLactoseFree && !profile.ignoreLactoseFreeFlag) return null;
   const lactose =
     food.lactoseMode === 'perPortion'
       ? (food.lactosePerPortion ?? 0) * item.quantity
       : ((item.quantity * (UNITS_DATA[item.unit]?.multiplier ?? 0)) / 100) * (food.lactosePer100g ?? 0);
-  if (!(lactose >= NEGLIGIBLE_LACTOSE_G)) return null;
-  // Un alimento scelto dal database con peso indicato è un dato certo.
+  if (!(lactose >= profile.negligible) || !(lactose > 0)) return null;
+  // Un alimento scelto dal database con peso indicato è un dato certo,
+  // ma il margine dipende da quanto è affidabile il valore nel database.
+  const tol = profile.tolFood[reliabilityOf(food)];
   return {
     name: food.name,
-    min: lactose * (1 - TOLERANCE_USER),
+    min: lactose * (1 - tol),
     expected: lactose,
-    cautious: lactose * (1 + TOLERANCE_USER),
+    cautious: lactose * (1 + tol),
     certain: true,
   };
 }
@@ -76,15 +126,16 @@ export function defaultQuantityFor(foodKey: string): { quantity: number; unit: s
   return { quantity: 100, unit: 'grammi' };
 }
 
-export function contributionsFor(items: MealItem[]): Contribution[] {
+export function contributionsFor(items: MealItem[], severe?: boolean): Contribution[] {
+  const profile = profileFor(severe);
   const list: Contribution[] = [];
   for (const item of items) {
     if (item.kind === 'dish' && item.dish) {
       for (const ing of item.dish.ingredients) {
-        if (ing.active) list.push(fromIngredient(ing));
+        if (ing.active) list.push(fromIngredient(ing, profile));
       }
     } else {
-      const c = fromFood(item);
+      const c = fromFood(item, profile);
       if (c) list.push(c);
     }
   }
@@ -101,8 +152,10 @@ export function estimateDose(
   items: MealItem[],
   fccPerPill: number,
   sensitivity: number,
+  options: DoseOptions = {},
 ): DoseEstimate {
-  const parts = contributionsFor(items);
+  const severe = options.severe === true;
+  const parts = contributionsFor(items, severe);
   const sum = (pick: (c: Contribution) => number) => parts.reduce((acc, c) => acc + pick(c), 0);
 
   const lactoseMin = sum((c) => c.min);
@@ -138,7 +191,8 @@ export function estimateDose(
     pillsMin,
     pillsExpected,
     pillsCautious,
-    pillsRecommended: confidence === 'low' ? pillsCautious : pillsExpected,
+    pillsRecommended: severe || confidence === 'low' ? pillsCautious : pillsExpected,
+    severe,
     confidence,
     uncertainShare,
     mainUncertainties,

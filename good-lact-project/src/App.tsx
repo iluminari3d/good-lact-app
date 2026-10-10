@@ -25,6 +25,8 @@ type View = 'main' | 'dish' | 'results' | 'timer' | 'lactose-free' | 'history' |
 
 interface Settings {
   sensitivity: number;
+  /** Profilo di intolleranza severa (attivo di default, per prudenza). */
+  severe: boolean;
   notifications: boolean;
   lactaseKey: string;
   customFcc: number | '';
@@ -36,13 +38,14 @@ interface DishDraft {
   dish: Dish;
 }
 
-const DEFAULT_SETTINGS: Settings = { sensitivity: 1, notifications: false, lactaseKey: '', customFcc: '' };
+const DEFAULT_SETTINGS: Settings = { sensitivity: 1, severe: true, notifications: false, lactaseKey: '', customFcc: '' };
 
 function isSettings(v: unknown): v is Settings {
   if (!v || typeof v !== 'object') return false;
   const s = v as Settings;
   return (
     typeof s.sensitivity === 'number' && s.sensitivity >= 0.5 && s.sensitivity <= 2 &&
+    (s.severe === undefined || typeof s.severe === 'boolean') &&
     typeof s.notifications === 'boolean' &&
     typeof s.lactaseKey === 'string' &&
     (s.customFcc === '' || typeof s.customFcc === 'number')
@@ -50,7 +53,7 @@ function isSettings(v: unknown): v is Settings {
 }
 
 function initialSettings(): Settings {
-  const saved = load<Settings>('settings', DEFAULT_SETTINGS, isSettings);
+  const saved: Settings = { ...DEFAULT_SETTINGS, ...load<Settings>('settings', DEFAULT_SETTINGS, isSettings) };
   return saved.lactaseKey && !LACTASE_DATA[saved.lactaseKey] ? { ...saved, lactaseKey: '' } : saved;
 }
 
@@ -129,7 +132,7 @@ export default function App() {
   };
 
   const handleCalculate = () => {
-    const result = estimateDose(meal, fccPerPill, settings.sensitivity);
+    const result = estimateDose(meal, fccPerPill, settings.sensitivity, { severe: settings.severe });
     setEstimate(result);
     setView(isLactoseFreeMeal(result) ? 'lactose-free' : 'results');
   };
@@ -222,6 +225,7 @@ export default function App() {
               key="dish"
               dish={draft.dish}
               isNew={!draft.itemId}
+              severe={settings.severe}
               onChange={(dish) => setDraft({ ...draft, dish })}
               onConfirm={handleConfirmDish}
               onCancel={() => { setDraft(null); setView('main'); }}
@@ -241,6 +245,8 @@ export default function App() {
             <SettingsView
               key="settings"
               sensitivity={settings.sensitivity}
+              severe={settings.severe}
+              onSevereChange={(severe) => patchSettings({ severe })}
               onSensitivityChange={(sensitivity) => patchSettings({ sensitivity })}
               notifications={settings.notifications}
               onNotificationsChange={(notifications) => patchSettings({ notifications })}

@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { AlertTriangle, Plus } from 'lucide-react';
 import { confidenceHint, formatGrams, formatPills, pillsLabel } from '../lib/format';
 import type { DoseEstimate } from '../types';
-import { ConfidenceBadge } from './ui';
+import { ConfidenceBadge, CrossContaminationNotice, DataStatusNotice } from './ui';
 
 interface Props {
   estimate: DoseEstimate;
@@ -13,8 +13,9 @@ interface Props {
 
 export function ResultsView({ estimate, onTake, onAddMore, onNewMeal }: Props) {
   const { pillsRecommended, pillsMin, pillsCautious, confidence } = estimate;
-  const showCautiousOption = pillsCautious > pillsRecommended;
-  const showRange = pillsCautious > pillsMin;
+  const { severe } = estimate;
+  const showCautiousOption = !severe && pillsCautious > pillsRecommended;
+  const showRange = !severe && pillsCautious > pillsMin;
 
   return (
     <motion.div
@@ -34,6 +35,11 @@ export function ResultsView({ estimate, onTake, onAddMore, onNewMeal }: Props) {
         <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Dose consigliata</p>
         <p className="text-7xl font-black text-emerald-700">{formatPills(pillsRecommended)}</p>
         <p className="text-sm font-bold text-emerald-700">{pillsLabel(pillsRecommended)}</p>
+        {severe && (
+          <p className="text-xs font-semibold text-emerald-700/70 pt-2">
+            Calcolata per intolleranza severa, con margine di sicurezza.
+          </p>
+        )}
       </div>
 
       {showRange && (
@@ -64,6 +70,9 @@ export function ResultsView({ estimate, onTake, onAddMore, onNewMeal }: Props) {
           </p>
         </div>
       )}
+
+      <CrossContaminationNotice />
+      <DataStatusNotice />
 
       <div className="space-y-4 pt-2">
         <button
