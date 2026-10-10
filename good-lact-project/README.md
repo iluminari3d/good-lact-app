@@ -23,7 +23,7 @@ Rispetto al profilo standard:
 - Gli ingredienti **"possibili"** (es. panna nella carbonara) entrano nella dose.
 - La dose consigliata è **sempre quella prudente**, mai la minima.
 - Margini più larghi: 50% sui grammi stimati dall'AI, 20% su quelli inseriti da te, fino al 50% sui valori del database non verificati.
-- Il valore numerico conta anche per gli alimenti segnati "senza lattosio" (es. gorgonzola dolce); i formaggi con lattosio 0 restano a zero.
+- Gli alimenti segnati "senza lattosio" (gorgonzola, formaggi stagionati) valgono zero anche in modalità severa: è la regola di chi usa l'app. Per questo il flag `isLactoseFree` va assegnato solo con una fonte.
 - Test: la dose severa non è mai inferiore a quella standard.
 
 L'app avvisa sempre che **non può sapere della contaminazione** (padelle, friggitrici, affettatrici in comune): la lattasi scompone il lattosio ma non protegge dalle tracce di latte.

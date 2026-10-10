@@ -207,12 +207,19 @@ describe('modalità intolleranza severa', () => {
     }
   });
 
-  it('usa il valore numerico anche per gli alimenti segnati "senza lattosio"', () => {
-    const gorgonzola: MealItem[] = [
-      { id: 'g', kind: 'food', name: 'Gorgonzola dolce', foodKey: 'gorgonzola-dolce', quantity: 100, unit: 'grammi' },
+  it('gli alimenti segnati "senza lattosio" valgono zero, anche in modalità severa', () => {
+    for (const foodKey of ['gorgonzola-dolce', 'grana-padano', 'parmigiano-24', 'fontina-dop']) {
+      const meal: MealItem[] = [{ id: 'x', kind: 'food', name: foodKey, foodKey, quantity: 200, unit: 'grammi' }];
+      expect(estimateDose(meal, 3000, 1, severe).lactoseCautious).toBe(0);
+      expect(estimateDose(meal, 3000, 1, severe).pillsRecommended).toBe(0);
+    }
+  });
+
+  it('un formaggio fresco, non segnato "senza lattosio", conta eccome', () => {
+    const meal: MealItem[] = [
+      { id: 'm', kind: 'food', name: 'Mozzarella', foodKey: 'mozzarella-fior-di-latte', quantity: 125, unit: 'grammi' },
     ];
-    expect(estimateDose(gorgonzola, 3000, 1).lactoseCautious).toBe(0);
-    expect(estimateDose(gorgonzola, 3000, 1, severe).pillsRecommended).toBeGreaterThan(0);
+    expect(estimateDose(meal, 3000, 1, severe).pillsRecommended).toBeGreaterThan(0);
   });
 
   it('i formaggi con lattosio zero restano a zero', () => {

@@ -20,8 +20,6 @@ interface Profile {
   tolFood: Record<Reliability, number>;
   /** Gli ingredienti "possibili" entrano nella dose attesa. */
   includePossible: boolean;
-  /** Si usa il valore numerico anche per gli alimenti segnati "senza lattosio". */
-  ignoreLactoseFreeFlag: boolean;
 }
 
 const STANDARD: Profile = {
@@ -30,7 +28,6 @@ const STANDARD: Profile = {
   tolUser: 0.1,
   tolFood: { measured: 0.1, estimated: 0.1, unverified: 0.1 },
   includePossible: false,
-  ignoreLactoseFreeFlag: false,
 };
 
 /**
@@ -43,7 +40,6 @@ const SEVERE: Profile = {
   tolUser: 0.2,
   tolFood: { measured: 0.2, estimated: 0.3, unverified: 0.5 },
   includePossible: true,
-  ignoreLactoseFreeFlag: true,
 };
 
 const profileFor = (severe?: boolean): Profile => (severe ? SEVERE : STANDARD);
@@ -96,7 +92,9 @@ function fromIngredient(ing: DishIngredient, profile: Profile): Contribution {
 function fromFood(item: MealItem, profile: Profile): Contribution | null {
   const food = item.foodKey ? FOODS_DATA[item.foodKey] : undefined;
   if (!food) return null;
-  if (food.isLactoseFree && !profile.ignoreLactoseFreeFlag) return null;
+  // Gli alimenti segnati "senza lattosio" (es. gorgonzola, formaggi stagionati) valgono zero,
+  // anche in modalità severa: è la regola che segue chi usa l'app.
+  if (food.isLactoseFree) return null;
   const lactose =
     food.lactoseMode === 'perPortion'
       ? (food.lactosePerPortion ?? 0) * item.quantity
