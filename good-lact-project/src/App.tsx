@@ -31,11 +31,11 @@ import { ResultsView } from './views/ResultsView';
 import { SettingsView } from './views/SettingsView';
 import { SymptomCheckCard } from './views/SymptomCheckCard';
 import { TimerView } from './views/TimerView';
-import { ToolsRow, type ToolView } from './views/ToolsRow';
+import { MoreView } from './views/MoreView';
+import { NavBar } from './views/NavBar';
+import type { NavView } from './views/navigation';
 
-type View =
-  | 'main' | 'dish' | 'results' | 'timer' | 'lactose-free' | 'history' | 'settings' | 'faq'
-  | ToolView;
+type View = 'dish' | 'results' | 'timer' | 'lactose-free' | NavView;
 
 interface Settings {
   sensitivity: number;
@@ -195,7 +195,10 @@ export default function App() {
   const canCalculate = meal.length > 0 && fccPerPill > 0;
 
   return (
-    <div className="max-w-4xl mx-auto p-4 md:p-12 min-h-screen flex flex-col font-montserrat antialiased relative">
+    <>
+    <NavBar view={view} onNavigate={setView} />
+    <div className="lg:pl-64 min-h-screen">
+    <div className="max-w-3xl mx-auto p-4 md:p-8 lg:p-12 pb-32 lg:pb-12 min-h-screen flex flex-col font-montserrat antialiased relative">
       <div className="w-full relative z-10">
         <div aria-hidden className="absolute -top-32 -right-32 w-64 h-64 bg-primary/20 rounded-full blur-[100px] pointer-events-none animate-pulse" />
         <div aria-hidden className="absolute -bottom-32 -left-32 w-64 h-64 bg-primary-light/20 rounded-full blur-[100px] pointer-events-none animate-pulse" style={{ animationDelay: '1s' }} />
@@ -234,7 +237,7 @@ export default function App() {
         </div>
 
         {/* Intestazione */}
-        <div className="text-center mb-12 print:hidden">
+        <div className="text-center mb-12 print:hidden lg:hidden">
           <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="flex justify-center mb-4">
             <button type="button" onClick={goMain} aria-label="Torna alla schermata iniziale">
               <img src="/Good Lact Lungo.svg" alt="Good Lact" className="h-24 md:h-28 w-auto hover:scale-105 transition-transform duration-500" />
@@ -346,13 +349,8 @@ export default function App() {
             />
           )}
           {view === 'faq' && <FaqView key="faq" onBack={goMain} />}
+          {view === 'more' && <MoreView key="more" onOpen={setView} />}
         </AnimatePresence>
-
-        {view === 'main' && (
-          <div className="mt-12">
-            <ToolsRow onOpen={setView} />
-          </div>
-        )}
 
         <div className="mt-12 pt-8 border-t border-slate-100 flex justify-between items-center relative z-10 print:hidden">
           <button type="button" onClick={() => setView('faq')} className="text-slate-400 hover:text-primary transition-all flex items-center gap-3 text-xs font-black uppercase tracking-widest">
@@ -368,5 +366,7 @@ export default function App() {
         </div>
       </div>
     </div>
+    </div>
+    </>
   );
 }

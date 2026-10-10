@@ -184,24 +184,38 @@ describe('funzioni per l\'intolleranza', () => {
     expect(alert.textContent).toMatch(/burro/i);
   });
 
-  it('dalla barra strumenti si aprono diario, esperienze e report', async () => {
+  it('dalla barra laterale (desktop) si aprono diario, esperienze e report', async () => {
     const user = userEvent.setup();
     render(<App />);
-    const tools = screen.getByRole('navigation', { name: /strumenti/i });
+    const side = () => within(screen.getByRole('navigation', { name: /menu laterale/i }));
 
-    await user.click(within(tools).getByRole('button', { name: /esperienze/i }));
-    expect(await screen.findByText('Le mie esperienze')).toBeTruthy();
+    await user.click(side().getByRole('button', { name: /le mie esperienze/i }));
+    expect(await screen.findByText('Le mie esperienze', { selector: 'h2' })).toBeTruthy();
     await user.type(screen.getByLabelText(/alimento o ingrediente/i), 'gorgonzola');
     await user.click(screen.getByRole('button', { name: /mi va bene/i }));
     expect(JSON.parse(window.localStorage.getItem('goodlact_experiences') ?? '[]')[0]).toMatchObject({ name: 'gorgonzola', verdict: 'ok' });
 
-    await user.click(screen.getByRole('button', { name: /menu/i }));
-    await user.click(within(screen.getByRole('navigation', { name: /strumenti/i })).getByRole('button', { name: /diario/i }));
-    expect(await screen.findByText('Diario sintomi')).toBeTruthy();
+    await user.click(side().getByRole('button', { name: /diario sintomi/i }));
+    expect(await screen.findByText('Diario sintomi', { selector: 'h2' })).toBeTruthy();
 
-    await user.click(screen.getByRole('button', { name: /menu/i }));
-    await user.click(within(screen.getByRole('navigation', { name: /strumenti/i })).getByRole('button', { name: /report/i }));
+    await user.click(side().getByRole('button', { name: /report medico/i }));
     expect(await screen.findByText(/report degli ultimi 30 giorni/i)).toBeTruthy();
   });
-});
 
+  it('la barra in basso porta a etichetta, ristorante, diario e al menu Altro', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    const bar = () => within(screen.getByRole('navigation', { name: /navigazione principale/i }));
+
+    expect(bar().getByRole('button', { name: /pasto/i }).getAttribute('aria-current')).toBe('page');
+    await user.click(bar().getByRole('button', { name: /diario/i }));
+    expect(await screen.findByText('Diario sintomi', { selector: 'h2' })).toBeTruthy();
+    expect(bar().getByRole('button', { name: /diario/i }).getAttribute('aria-current')).toBe('page');
+
+    await user.click(bar().getByRole('button', { name: /altro/i }));
+    await user.click(await screen.findByRole('button', { name: /profilo e account/i }));
+    expect(await screen.findByText('Il mio profilo')).toBeTruthy();
+    // dalle impostazioni la scheda attiva resta "Altro"
+    expect(bar().getByRole('button', { name: /altro/i }).getAttribute('aria-current')).toBe('page');
+  });
+});
