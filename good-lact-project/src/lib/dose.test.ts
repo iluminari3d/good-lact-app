@@ -239,3 +239,22 @@ describe('modalità intolleranza severa', () => {
     expect(std.lactoseCautious / std.lactoseExpected).toBeCloseTo(1.1);
   });
 });
+
+describe('tolleranze personali di Francesco', () => {
+  const severe = { severe: true };
+  const food = (foodKey: string, quantity = 150): MealItem[] => [
+    { id: 'x', kind: 'food', name: foodKey, foodKey, quantity, unit: 'grammi' },
+  ];
+
+  it('cacio e pepe, pesto, roquefort, gorgonzola e fette biscottate valgono zero', () => {
+    for (const key of ['pasta-cacio-e-pepe', 'pesto-genovese', 'roquefort', 'gorgonzola-dolce', 'fette-biscottate-marmellata']) {
+      expect(estimateDose(food(key), 3000, 1, severe).pillsRecommended).toBe(0);
+    }
+  });
+
+  it('le salse industriali contano: maionese, caesar e tramezzino con maionese', () => {
+    for (const key of ['maionese-industriale', 'salsa-caesar', 'tramezzino-tonno']) {
+      expect(estimateDose(food(key), 3000, 1, severe).pillsRecommended).toBeGreaterThan(0);
+    }
+  });
+});
