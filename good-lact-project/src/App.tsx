@@ -207,8 +207,10 @@ export default function App() {
     <div className="lg:pl-64 min-h-screen">
     <div className="max-w-3xl mx-auto p-4 md:p-8 lg:p-12 pb-32 lg:pb-12 min-h-screen flex flex-col font-montserrat antialiased relative">
       <div className="w-full relative z-10">
-        <div aria-hidden className="absolute -top-32 -right-32 w-64 h-64 bg-primary/20 rounded-full blur-[100px] pointer-events-none animate-pulse" />
+        <div aria-hidden className="fixed inset-0 overflow-hidden pointer-events-none">
+          <div aria-hidden className="absolute -top-32 -right-32 w-64 h-64 bg-primary/20 rounded-full blur-[100px] pointer-events-none animate-pulse" />
         <div aria-hidden className="absolute -bottom-32 -left-32 w-64 h-64 bg-primary-light/20 rounded-full blur-[100px] pointer-events-none animate-pulse" style={{ animationDelay: '1s' }} />
+        </div>
 
         {/* Stato e scorciatoie */}
         <div className="flex justify-between items-center mb-12 relative z-10 print:hidden">
