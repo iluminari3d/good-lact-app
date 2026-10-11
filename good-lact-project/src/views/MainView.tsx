@@ -16,11 +16,21 @@ import {
 } from 'lucide-react';
 import { FOODS_DATA, LACTASE_DATA, UNITS_DATA } from '../data/goodLactData';
 import { defaultQuantityFor } from '../lib/dose';
+import { searchItems } from '../lib/search';
 import { prepareImage, type PreparedImage } from '../lib/image';
 import { newId } from '../lib/storage';
 import type { MealItem } from '../types';
 
 const MAX_DESCRIPTION = 500;
+
+/** Riga di anteprima nei risultati: aiuta a scegliere la voce giusta prima di aggiungerla. */
+function lactoseHint(f: (typeof FOODS_DATA)[string]): string {
+  if (f.isLactoseFree) return 'lattosio trascurabile';
+  const fmt = (n: number) => String(Math.round(n * 10) / 10).replace('.', ',');
+  if (f.lactoseMode === 'perPortion' && f.lactosePerPortion != null) return `≈ ${fmt(f.lactosePerPortion)} g a porzione`;
+  if (f.lactosePer100g != null) return `${fmt(f.lactosePer100g)} g / 100 g`;
+  return '';
+}
 const MAX_SEARCH_RESULTS = 30;
 
 interface Props {
@@ -61,17 +71,14 @@ export function MainView(props: Props) {
     }
   };
 
-  const term = search.trim().toLowerCase();
-  const results =
-    term.length > 0
-      ? Object.entries(FOODS_DATA)
-          .filter(
-            ([key, f]) =>
-              key !== 'custom-dish' &&
-              (f.name.toLowerCase().includes(term) || f.category?.toLowerCase().includes(term)),
-          )
-          .slice(0, MAX_SEARCH_RESULTS)
-      : [];
+  const term = search.trim();
+  const results = searchItems(
+    Object.entries(FOODS_DATA).filter(([key]) => key !== 'custom-dish'),
+    term,
+    ([, f]) => f.name,
+    ([, f]) => f.category ?? '',
+    MAX_SEARCH_RESULTS,
+  );
 
   const addFood = (foodKey: string) => {
     const food = FOODS_DATA[foodKey];
@@ -235,14 +242,18 @@ export function MainView(props: Props) {
               className="absolute z-50 left-0 right-0 bg-white rounded-2xl shadow-xl max-h-72 overflow-y-auto p-1 border border-slate-100"
             >
               {results.length === 0 && (
-                <p className="p-3 text-center text-slate-300 font-bold text-[10px] uppercase tracking-widest">Nessun risultato</p>
+                <p className="p-3 text-center text-slate-400 font-bold text-xs">
+                  Nessun risultato. Prova con un'altra parola, oppure descrivi il piatto e premi «Analizza», o usa «Componi un piatto a mano».
+                </p>
               )}
               {results.map(([key, f]) => (
                 <button key={key} onClick={() => addFood(key)} className="w-full text-left p-3 hover:bg-slate-50 rounded-xl flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400"><Plus size={16} /></div>
                   <div className="flex flex-col">
                     <span className="text-sm font-bold text-slate-700">{f.name}</span>
-                    {f.category && <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{f.category}</span>}
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                      {[f.category, lactoseHint(f)].filter(Boolean).join(' · ')}
+                    </span>
                   </div>
                 </button>
               ))}

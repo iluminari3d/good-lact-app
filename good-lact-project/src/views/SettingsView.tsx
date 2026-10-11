@@ -6,6 +6,7 @@ import { applyBackup, createBackup, parseBackup } from '../lib/backup';
 import { cn } from '../lib/cn';
 import { clearAll } from '../lib/storage';
 import { notificationsSupported } from '../hooks/useCoverageTimer';
+import { TEXT_SCALE_LABEL, type TextScale } from '../lib/textScale';
 import { AccountSection } from './AccountSection';
 import { BackButton } from './ui';
 
@@ -20,12 +21,14 @@ interface Props {
   customFcc: number | '';
   onLactaseChange: (key: string) => void;
   onCustomFccChange: (value: number | '') => void;
+  textScale: TextScale;
+  onTextScaleChange: (value: TextScale) => void;
   onBack: () => void;
 }
 
 export function SettingsView({
   sensitivity, onSensitivityChange, severe, onSevereChange, notifications, onNotificationsChange,
-  lactaseKey, customFcc, onLactaseChange, onCustomFccChange, onBack,
+  lactaseKey, customFcc, onLactaseChange, onCustomFccChange, textScale, onTextScaleChange, onBack,
 }: Props) {
   const supported = notificationsSupported();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -93,6 +96,26 @@ export function SettingsView({
               className="w-full p-4 bg-white rounded-2xl outline-none font-semibold text-slate-700"
             />
           )}
+        </div>
+        <div className="p-8 bg-slate-50 rounded-[3rem] space-y-4">
+          <div className="space-y-1">
+            <p id="text-scale-label" className="text-sm font-black text-slate-800">Dimensione del testo</p>
+            <p className="text-xs text-slate-400">L'app non si ingrandisce con il pizzico: scegli qui quanto leggere grande.</p>
+          </div>
+          <div role="radiogroup" aria-labelledby="text-scale-label" className="grid grid-cols-3 gap-2">
+            {(Object.keys(TEXT_SCALE_LABEL) as TextScale[]).map((k) => (
+              <button
+                key={k}
+                type="button"
+                role="radio"
+                aria-checked={textScale === k}
+                onClick={() => onTextScaleChange(k)}
+                className={cn('py-3 rounded-2xl font-bold text-sm', textScale === k ? 'bg-primary text-white' : 'bg-white text-slate-600')}
+              >
+                {TEXT_SCALE_LABEL[k]}
+              </button>
+            ))}
+          </div>
         </div>
         <div className="p-8 bg-slate-50 rounded-[3rem] flex items-center justify-between gap-4">
           <div className="space-y-1">
