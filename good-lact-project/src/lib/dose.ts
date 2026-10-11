@@ -2,8 +2,21 @@ import { FOODS_DATA, UNITS_DATA } from '../data/goodLactData';
 import type { FoodInfo, Reliability } from '../data/goodLactData';
 import type { Confidence, DishIngredient, DoseEstimate, MealItem } from '../types';
 
-/** Quanti FCC servono per grammo di lattosio (formula storica di Good Lact). */
+/**
+ * Quanti FCC si stimano per grammo di lattosio. NON è un dato clinico certo:
+ * le fonti consultate danno valori diversi e nessuna è uno studio dose-risposta.
+ * - ~200 FCC/g: valore di riferimento di laboratorio / indicazione di un produttore
+ *   (1.000 FCC ogni 5 g di lattosio, sanotact.de);
+ * - 1.000-1.500 FCC/g: stima pratica (5-7 volte il laboratorio) del portale nmi
+ *   (nahrungsmittel-intoleranz.com), coerente con 5.000-15.000 FCC a pasto riferiti
+ *   dalla maggior parte di 500+ intervistati (sondaggio nmi 2014, non peer-reviewed).
+ * Usiamo 1.000 come stima prudenziale. L'app lo dichiara nei risultati e nelle FAQ.
+ */
 export const FCC_PER_GRAM_LACTOSE = 1000;
+/** Intervallo delle fonti (FCC per g di lattosio), mostrato nelle FAQ. */
+export const FCC_PER_GRAM_RANGE = { lab: 200, practicalMax: 1500 } as const;
+/** Dose minima proposta (mezza compressa): il passo più piccolo dell'app. */
+export const MINIMUM_PILLS = 0.5;
 
 export interface DoseOptions {
   /** Intolleranza severa: nessun margine di rischio accettato. */
@@ -72,6 +85,8 @@ interface Contribution {
   expected: number;
   cautious: number;
   certain: boolean;
+  /** Ingrediente non certo con lattosio sotto soglia: conta 0 ma lascia un dubbio. */
+  doubtful?: boolean;
 }
 
 function fromIngredient(ing: DishIngredient, profile: Profile): Contribution {
@@ -86,6 +101,7 @@ function fromIngredient(ing: DishIngredient, profile: Profile): Contribution {
     expected: counted ? base : 0,
     cautious: base * (1 + tol),
     certain,
+    doubtful: !certain && raw > 0 && base === 0,
   };
 }
 
@@ -179,6 +195,16 @@ export function estimateDose(
     .slice(0, 3)
     .map((c) => c.name);
 
+  // Profilo severo: nel dubbio (nulla di calcolabile ma ingredienti incerti sotto soglia) si propone il minimo.
+  const doubtMinimum = severe && pillsCautious === 0 && parts.some((c) => c.doubtful);
+  const pillsRecommended = doubtMinimum
+    ? MINIMUM_PILLS
+    : severe || confidence === 'low'
+      ? pillsCautious
+      : pillsExpected;
+  const pillsRaw = fccPerPill > 0 ? fccCautious / fccPerPill : 0;
+  const minimumApplied = pillsRecommended > 0 && pillsRaw < MINIMUM_PILLS - 1e-9;
+
   return {
     lactoseMin,
     lactoseExpected,
@@ -189,7 +215,10 @@ export function estimateDose(
     pillsMin,
     pillsExpected,
     pillsCautious,
-    pillsRecommended: severe || confidence === 'low' ? pillsCautious : pillsExpected,
+    pillsRecommended,
+    pillsRaw,
+    minimumApplied,
+    doubtMinimum,
     severe,
     confidence,
     uncertainShare,
@@ -198,5 +227,5 @@ export function estimateDose(
 }
 
 export function isLactoseFreeMeal(est: DoseEstimate): boolean {
-  return est.lactoseCautious <= 0;
+  return est.lactoseCautious <= 0 && !est.doubtMinimum;
 }

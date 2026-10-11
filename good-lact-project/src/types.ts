@@ -61,6 +61,12 @@ export interface DoseEstimate {
   pillsCautious: number;
   /** Dose finale consigliata: se la confidenza è bassa (o in modalità severa) coincide con la prudente. */
   pillsRecommended: number;
+  /** Compresse "grezze" (non arrotondate) della stima prudente: mostra quanto è sotto il minimo. */
+  pillsRaw: number;
+  /** True se la dose è stata portata al minimo proposto (il calcolo ne darebbe meno). */
+  minimumApplied: boolean;
+  /** True se nel dubbio (ingredienti incerti con lattosio sotto soglia) è stato proposto il minimo. */
+  doubtMinimum: boolean;
   /** True se il calcolo è stato fatto con il profilo di intolleranza severa. */
   severe: boolean;
   confidence: Confidence;

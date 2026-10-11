@@ -45,6 +45,18 @@ export function ResultsView({ estimate, experiences, onTake, onAddMore, onNewMea
         )}
       </div>
 
+      {estimate.doubtMinimum && (
+        <p className="text-xs font-semibold text-slate-500 -mt-4">
+          Nel dubbio proponiamo la dose minima: ci sono ingredienti incerti con pochissimo lattosio.
+        </p>
+      )}
+      {estimate.minimumApplied && !estimate.doubtMinimum && (
+        <p className="text-xs font-semibold text-slate-500 -mt-4">
+          Il calcolo darebbe circa il {Math.max(1, Math.round(estimate.pillsRaw * 100))}% di una compressa: mezza
+          compressa è la dose minima che proponiamo.
+        </p>
+      )}
+
       {showRange && (
         <div className="grid grid-cols-3 gap-3 text-center">
           <div className="p-4 bg-slate-50 rounded-3xl">

@@ -61,6 +61,10 @@ export const FAQ_DATA: FaqCategory[] = [
         a: "Descrivi il piatto o lo fotografi: l'analisi riconosce gli ingredienti che possono contenere lattosio, compresi quelli che non si vedono ma sono tipici della ricetta (ad esempio il burro nel risotto o la panna nella carbonara). I grammi sono una stima: puoi sempre correggerli o escludere un ingrediente."
       },
       {
+        q: "Su cosa si basa il calcolo della dose di lattasi?",
+        a: "Sul lattosio stimato nel pasto, moltiplicato per 1.000 FCC per grammo. È una stima prudenziale e non un dato clinico certo: le fonti che abbiamo consultato indicano da circa 200 FCC per grammo (valore di laboratorio o di un produttore) fino a 1.000-1.500 (stima pratica di un portale informativo, coerente con i 5.000-15.000 FCC a pasto che molte persone dichiarano), e nessuna è uno studio dose-risposta. Gli alimenti con lattosio trascurabile (come i formaggi stagionati o il gorgonzola) contano 0. Mezza compressa è la dose minima che proponiamo, anche quando il calcolo ne darebbe molto meno. Se hai sintomi con la dose consigliata, segnalali nel diario e parlane con il medico.",
+      },
+      {
         q: "Cosa significano Certo, Probabile e Possibile?",
         a: "Certo: l'ingrediente è nominato o chiaramente visibile. Probabile: è tipico di quella ricetta ma non si vede. Possibile: alcune ricette lo usano e altre no. Gli ingredienti certi e probabili entrano nella dose consigliata; quelli possibili entrano solo nella dose prudente."
       },
