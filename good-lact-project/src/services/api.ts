@@ -1,5 +1,6 @@
 import type { Certainty, Dish, DishIngredient } from '../types';
 import { newId } from '../lib/storage';
+import { callCloud, CloudError } from './cloud';
 
 interface AnalyzeInput {
   description?: string;
@@ -22,37 +23,21 @@ interface RawAnalysis {
 
 export class AnalysisError extends Error {}
 
-const TIMEOUT_MS = 30_000;
+const TIMEOUT_MS = 45_000;
 
 /** Chiede al server di analizzare il piatto (testo e/o foto). */
 export async function analyzeDish(input: AnalyzeInput, signal?: AbortSignal): Promise<Dish> {
-  const timeout = AbortSignal.timeout(TIMEOUT_MS);
-  const combined = signal ? AbortSignal.any([signal, timeout]) : timeout;
-
-  let response: Response;
+  let body: unknown;
   try {
-    response = await fetch('/api/analyze', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(input),
-      signal: combined,
+    body = await callCloud('analyze', input, {
+      signal,
+      timeoutMs: TIMEOUT_MS,
+      timeoutMessage: "L'analisi sta impiegando troppo tempo. Riprova.",
+      failedMessage: "L'analisi non è andata a buon fine. Riprova.",
     });
   } catch (error) {
-    if (signal?.aborted) throw error;
-    throw new AnalysisError(
-      timeout.aborted
-        ? "L'analisi sta impiegando troppo tempo. Riprova."
-        : 'Impossibile contattare il servizio. Controlla la connessione.',
-    );
-  }
-
-  const body: unknown = await response.json().catch(() => null);
-  if (!response.ok) {
-    const message =
-      body && typeof body === 'object' && 'error' in body && typeof body.error === 'string'
-        ? body.error
-        : "L'analisi non è andata a buon fine. Riprova.";
-    throw new AnalysisError(message);
+    if (error instanceof CloudError) throw new AnalysisError(error.message);
+    throw error;
   }
   if (!isRawAnalysis(body)) {
     throw new AnalysisError('Risposta del servizio non valida. Riprova.');

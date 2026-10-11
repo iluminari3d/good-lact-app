@@ -5,12 +5,12 @@ App web (PWA) in italiano che calcola quanta lattasi prendere prima di un pasto.
 ## Albero della repository
 ```
 .
-├── good-lact-project/       # L'app (Vite + React + TypeScript, PWA) e le funzioni serverless in api/
+├── good-lact-project/       # L'app (Vite + React + TypeScript, PWA) e le funzioni Firebase in functions/
 ├── .github/workflows/       # CI (lint, test, build) e test delle regole Firestore
 ├── docs/                    # Documenti operativi (RILASCIO.md: rilascio, backup, ritorno indietro)
 ├── tests/firestore/         # Test delle regole Firestore con l'emulatore
 ├── firestore.rules          # Regole di sicurezza di Firestore
-└── firebase.json            # Configurazione Firebase (solo Firestore ed emulatore; l'hosting è su Vercel)
+└── firebase.json            # Configurazione Firebase (Firestore, funzioni, emulatori; l'hosting è su Vercel)
 ```
 Le altre voci in radice (immagini, grafiche, tema) sono materiali di design.
 
@@ -36,7 +36,7 @@ npm test
 La CI esegue gli stessi controlli a ogni push su `main`, `staging/**`, `fix/**` e su ogni Pull Request.
 
 ## Segreti
-Nessuna chiave nel repository. Le variabili d'ambiente (es. `GEMINI_API_KEY`) si impostano su Vercel; l'elenco è in `good-lact-project/.env.example`.
+Nessuna chiave nel repository. La chiave Gemini è un segreto di Firebase (`firebase functions:secrets:set GEMINI_API_KEY`); i parametri sono in `good-lact-project/functions/.env.example` (vedi `docs/RILASCIO.md`).
 
 ## Documenti
 - [`good-lact-project/README.md`](good-lact-project/README.md): come funziona l'app.

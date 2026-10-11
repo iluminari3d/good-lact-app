@@ -1,0 +1,5 @@
+node_modules/
+# I valori reali (es. le email con uso illimitato) stanno in .env.<progetto> e non vanno nel repository.
+.env
+.env.*
+!.env.example

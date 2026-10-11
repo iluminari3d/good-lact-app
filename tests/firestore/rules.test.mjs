@@ -137,3 +137,12 @@ test('qualunque altro percorso è rifiutato', async () => {
   await assertFails(setDoc(doc(db, 'users/alice/altro/settings'), valido()));
   await assertFails(setDoc(doc(db, 'users/alice/data/settings/sotto/doc'), valido()));
 });
+
+test('i contatori di utilizzo (usage) sono chiusi a tutti i client', async () => {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    await setDoc(doc(ctx.firestore(), 'usage/alice_2026-10-11'), { uid: 'alice', count: 3 });
+  });
+  await assertFails(getDoc(doc(comeAlice(), 'usage/alice_2026-10-11')));
+  await assertFails(setDoc(doc(comeAlice(), 'usage/alice_2026-10-11'), { uid: 'alice', count: 0 }));
+  await assertFails(getDoc(doc(anonimo(), 'usage/alice_2026-10-11')));
+});

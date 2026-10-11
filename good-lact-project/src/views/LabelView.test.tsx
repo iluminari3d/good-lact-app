@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { LabelView } from './LabelView';
+import { callCloud, CloudError } from '../services/cloud';
 import { isLabelResult, isMenuResult, readMenu, scanLabel } from '../services/labelApi';
 
 vi.mock('../lib/image', () => ({
@@ -27,9 +28,17 @@ const RESULT = {
   note: 'Tra gli ingredienti ci sono derivati del latte.',
 };
 
-function mockFetch(json: unknown, ok = true, status = 200) {
-  const fn = vi.fn(async () => ({ ok, status, json: async () => json }) as Response);
-  vi.stubGlobal('fetch', fn);
+vi.mock('../services/cloud', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../services/cloud')>()),
+  callCloud: vi.fn(),
+}));
+
+/** Simula la risposta della funzione Firebase: ok → dati, altrimenti errore con il messaggio del server. */
+function mockFetch(json: unknown, ok = true) {
+  const fn = vi.mocked(callCloud);
+  fn.mockReset();
+  if (ok) fn.mockResolvedValue(json);
+  else fn.mockRejectedValue(new CloudError(String((json as { error?: unknown }).error ?? 'errore')));
   return fn;
 }
 
@@ -59,14 +68,14 @@ describe('LabelView', () => {
     expect(screen.getByText(RESULT.note)).toBeTruthy();
     expect(screen.getByText(/tracce di latte/i)).toBeTruthy();
 
-    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
-    expect(url).toBe('/api/label');
-    expect(JSON.parse(String(init.body))).toEqual({ image: { mimeType: 'image/jpeg', data: 'QUJD' } });
+    const [name, payload] = fetchMock.mock.calls[0];
+    expect(name).toBe('label');
+    expect(payload).toEqual({ image: { mimeType: 'image/jpeg', data: 'QUJD' } });
   });
 
   it('mostra l\'errore del server', async () => {
     const user = userEvent.setup();
-    mockFetch({ error: 'La lettura non è disponibile.' }, false, 502);
+    mockFetch({ error: 'La lettura non è disponibile.' }, false);
     render(<LabelView onBack={() => {}} />);
     await pickPhoto(user);
     await user.click(screen.getByRole('button', { name: /leggi l'etichetta/i }));
@@ -103,8 +112,8 @@ describe('validazione risposte labelApi', () => {
     await expect(readMenu({ text: 'pizza' })).rejects.toThrow(/non valida/);
   });
 
-  it('errore di rete e timeout danno messaggi in italiano', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => { throw new TypeError('offline'); }));
-    await expect(readMenu({ text: 'pizza' })).rejects.toThrow(/Impossibile contattare/);
+  it('gli errori del servizio arrivano in italiano', async () => {
+    mockFetch({ error: 'Sei offline: questa funzione ha bisogno della connessione.' }, false);
+    await expect(readMenu({ text: 'pizza' })).rejects.toThrow(/offline/);
   });
 });

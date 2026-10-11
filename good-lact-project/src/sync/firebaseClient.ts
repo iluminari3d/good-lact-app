@@ -14,6 +14,7 @@ import {
   type User,
 } from 'firebase/auth';
 import { collection, deleteDoc, doc, getDocs, initializeFirestore, setDoc } from 'firebase/firestore';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import { firebaseConfig } from './firebaseConfig';
 
 export interface RemoteDoc {
@@ -75,4 +76,23 @@ export async function deleteAccountAndData(keys: readonly string[]): Promise<voi
   if (!user) return;
   await Promise.all(keys.map((k) => deleteDoc(doc(db, 'users', user.uid, 'data', k))));
   await deleteUser(user);
+}
+
+/** Regione delle funzioni (vedi functions/index.js). */
+const FUNCTIONS_REGION = 'europe-west1';
+
+/**
+ * Chiama una funzione Firebase. L'SDK allega da solo il token dell'utente.
+ * Se non c'è un accesso restituisce { signedOut: true } senza fare alcuna richiesta.
+ */
+export async function callFunction(
+  name: string,
+  data: unknown,
+  timeoutMs: number,
+): Promise<{ signedOut: true } | { signedOut: false; data: unknown }> {
+  await auth.authStateReady();
+  if (!auth.currentUser) return { signedOut: true };
+  const call = httpsCallable(getFunctions(app, FUNCTIONS_REGION), name, { timeout: timeoutMs });
+  const result = await call(data);
+  return { signedOut: false, data: result.data };
 }

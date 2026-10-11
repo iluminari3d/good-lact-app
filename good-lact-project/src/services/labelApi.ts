@@ -1,5 +1,6 @@
-// Client per /api/label (scanner etichette) e /api/menu (modalità ristorante).
+// Client per le funzioni Firebase `label` (scanner etichette) e `menu` (modalità ristorante).
 // Stessa gestione errori di services/api.ts; la risposta è validata a runtime.
+import { callCloud, CloudError } from './cloud';
 
 export class LabelApiError extends Error {}
 
@@ -45,43 +46,27 @@ export interface MenuInput {
   image?: ApiImage;
 }
 
-const TIMEOUT_MS = 30_000;
+const TIMEOUT_MS = 45_000;
 const VERDICTS: readonly string[] = ['ok', 'caution', 'avoid', 'unreadable'];
 const RISKS: readonly string[] = ['low', 'ask', 'avoid'];
 
-async function postJson(
-  url: string,
+async function call(
+  name: 'label' | 'menu',
   payload: unknown,
   signal: AbortSignal | undefined,
   messages: { timeout: string; failed: string },
 ): Promise<unknown> {
-  const timeout = AbortSignal.timeout(TIMEOUT_MS);
-  const combined = signal ? AbortSignal.any([signal, timeout]) : timeout;
-
-  let response: Response;
   try {
-    response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-      signal: combined,
+    return await callCloud(name, payload, {
+      signal,
+      timeoutMs: TIMEOUT_MS,
+      timeoutMessage: messages.timeout,
+      failedMessage: messages.failed,
     });
   } catch (error) {
-    if (signal?.aborted) throw error;
-    throw new LabelApiError(
-      timeout.aborted ? messages.timeout : 'Impossibile contattare il servizio. Controlla la connessione.',
-    );
+    if (error instanceof CloudError) throw new LabelApiError(error.message);
+    throw error;
   }
-
-  const body: unknown = await response.json().catch(() => null);
-  if (!response.ok) {
-    const message =
-      body && typeof body === 'object' && 'error' in body && typeof body.error === 'string'
-        ? body.error
-        : messages.failed;
-    throw new LabelApiError(message);
-  }
-  return body;
 }
 
 function isObject(value: unknown): value is Record<string, unknown> {
@@ -123,7 +108,7 @@ export function isMenuResult(value: unknown): value is MenuResult {
 
 /** Legge l'etichetta di un prodotto. Il verdetto arriva calcolato dal server. */
 export async function scanLabel(image: ApiImage, signal?: AbortSignal): Promise<LabelResult> {
-  const body = await postJson('/api/label', { image }, signal, {
+  const body = await call('label', { image }, signal, {
     timeout: "La lettura dell'etichetta sta impiegando troppo tempo. Riprova.",
     failed: "La lettura dell'etichetta non è andata a buon fine. Riprova.",
   });
@@ -133,7 +118,7 @@ export async function scanLabel(image: ApiImage, signal?: AbortSignal): Promise<
 
 /** Legge un menu (foto e/o testo incollato) e classifica i piatti. */
 export async function readMenu(input: MenuInput, signal?: AbortSignal): Promise<MenuResult> {
-  const body = await postJson('/api/menu', input, signal, {
+  const body = await call('menu', input, signal, {
     timeout: 'La lettura del menu sta impiegando troppo tempo. Riprova.',
     failed: 'La lettura del menu non è andata a buon fine. Riprova.',
   });

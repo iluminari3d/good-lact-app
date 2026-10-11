@@ -11,23 +11,37 @@ Questo documento dice come si porta una modifica in produzione, cosa salvare pri
 
 ## Checklist prima di unire
 1. CI verde sulla PR: lint, test, build (workflow "CI") e, se si toccano le regole, "Test regole Firestore".
-2. Anteprima Vercel aperta e provata: caricamento, un'analisi di prova, timer, profilo, installazione PWA.
-3. Nessuna chiave, token o dato personale nel diff (`git diff main...HEAD`). Le chiavi stanno solo su Vercel.
+2. Anteprima Vercel aperta e provata: caricamento, un'analisi di prova (da loggati), timer, profilo, installazione PWA.
+3. Nessuna chiave, token o dato personale nel diff (`git diff main...HEAD`). La chiave Gemini sta solo nei segreti di Firebase.
 4. Se cambiano `firestore.rules`: test regole verdi e piano per pubblicarle (vedi Firebase).
-5. Se cambiano le variabili d'ambiente: aggiornarle su Vercel **prima** di unire.
+5. Se cambiano le funzioni o i loro parametri: pubblicarle su Firebase **prima** di unire (vedi sopra).
 6. Piano di ritorno scritto nella PR (di solito: Instant Rollback, vedi sotto).
 
-## Variabili d'ambiente su Vercel
-Project > Settings > Environment Variables (le stesse sono elencate in `good-lact-project/.env.example`).
+## Funzioni Firebase (analisi piatti, etichette, menu)
+Le funzioni con l'AI non stanno più su Vercel: sono in `good-lact-project/functions/` e girano su Firebase (Cloud Functions, regione `europe-west1`). Servono il **piano Blaze** (a consumo, con carta) e la riga di comando: `npm i -g firebase-tools`, poi `firebase login`.
 
-| Variabile | Note |
+**Prima pubblicazione** (da una copia aggiornata del repository, nella radice):
+1. Chiave Gemini come segreto: `firebase functions:secrets:set GEMINI_API_KEY --project good-lact` (incolla la chiave quando richiesto).
+2. Parametri: copia `good-lact-project/functions/.env.example` in `good-lact-project/functions/.env.good-lact` e compila (il file **non** va nel repository). `UNLIMITED_EMAILS` contiene le email con uso illimitato, separate da virgola.
+3. Pubblica: `firebase deploy --only functions,firestore:rules --project good-lact`.
+4. Solo dopo, unisci a `main` la PR che usa le funzioni (altrimenti l'app in produzione chiama funzioni che non esistono).
+
+| Parametro | Note |
 |---|---|
-| `GEMINI_API_KEY` | Chiave Google AI Studio. **Solo lato server**, mai con prefisso `VITE_` (finirebbe nel browser). |
-| `GEMINI_MODEL` | Opzionale. Default `gemini-flash-latest`; per bloccare una versione scrivere il nome esatto. |
-| `ALLOWED_ORIGINS` | Opzionale. Origini ammesse per le chiamate alle funzioni `/api/*`, separate da virgola. Vuoto = solo lo stesso dominio. Le anteprime hanno indirizzi diversi: vedi sotto. |
-| `RATE_LIMIT_PER_MINUTE` | Opzionale. Richieste massime per IP al minuto (default 8). |
+| `GEMINI_API_KEY` | Segreto (Secret Manager). Mai nel repository né su Vercel. |
+| `GEMINI_MODEL` | Default `gemini-flash-latest`. Per un prezzo stabile scrivi il nome esatto. |
+| `UNLIMITED_EMAILS` | Email con uso illimitato (contano solo se verificate da Firebase Auth). |
+| `FREE_DAILY_LIMIT` | Richieste con AI al giorno per utente gratuito (default 10). |
+| `UNLIMITED_DAILY_CAP` | Tetto tecnico per gli illimitati (default 500). |
 
-Dopo aver cambiato una variabile serve un **Redeploy**: i valori vengono letti alla pubblicazione.
+Il conteggio sta in Firestore, collezione `usage` (un documento per utente e giorno), chiusa ai client dalle regole. Il giorno cambia a mezzanotte di Roma. Facoltativo: in Firestore > TTL, criterio sul campo `expireAt` della collezione `usage` per cancellare i vecchi contatori.
+
+Per cambiare un parametro: modifica il file `.env.good-lact` e ripubblica con `firebase deploy --only functions`. Per ritirare una versione: `firebase functions:delete <nome> --project good-lact`, oppure ripubblica il commit precedente.
+
+Controlli dopo la pubblicazione: Firebase Console > Functions (tre funzioni `analyze`, `label`, `menu` in `europe-west1`) e, dal sito, un'analisi da loggato e una da non loggato (deve chiedere l'accesso). Registro: Functions > Log. Consigli: tetto di spesa e avvisi in Google Cloud > Fatturazione.
+
+## Vercel
+Il sito non ha più variabili d'ambiente segrete. Dopo aver rimosso `GEMINI_API_KEY` e le altre da Vercel (Settings > Environment Variables) non serve altro. Un Redeploy è richiesto solo se si cambia la configurazione del sito.
 
 ## Firebase (progetto `good-lact`)
 - **Authentication > Settings > Domini autorizzati**: aggiungere ogni indirizzo da cui si accede (dominio di produzione, eventuali domini personalizzati).
@@ -46,7 +60,7 @@ Dopo aver cambiato una variabile serve un **Redeploy**: i valori vengono letti a
 ## Se qualcosa va storto
 - **Sito**: Vercel > Deployments > scegliere l'ultimo deploy funzionante > **Instant Rollback** (oppure "Promote to Production"). È immediato e non tocca il codice: poi si corregge su un ramo `fix/<nome>`.
 - **Regole Firestore**: console > Firestore > Regole > cronologia, e ripubblicare la versione precedente (oppure `git show main~N:firestore.rules`).
-- **Chiavi compromesse**: revocare **subito** la chiave in Google AI Studio, crearne una nuova, aggiornarla in Vercel e fare **Redeploy**.
+- **Chiavi compromesse**: revocare **subito** la chiave in Google AI Studio, crearne una nuova, aggiornarla con `firebase functions:secrets:set GEMINI_API_KEY` e ripubblicare le funzioni.
 - **Dati**: importare un backup solo se i dati sono stati alterati.
 
 ## Dopo il rilascio
@@ -55,7 +69,7 @@ Controllare sul dominio di produzione:
 2. Un'analisi di prova funziona (testo, e se toccata la parte, foto).
 3. L'installazione come PWA è proposta e l'app installata si apre.
 4. L'accesso (Google o link email) funziona e i dati si risincronizzano.
-5. In Vercel i log delle funzioni `/api/*` non mostrano errori.
+5. In Firebase Console > Functions > Log le funzioni non mostrano errori.
 
 ## Avvertenza sulla chiave trapelata
 In passato una chiave Google è finita nel repository: **è ancora nella cronologia git** (cancellarla dal codice non la rimuove dalla storia). Va considerata **compromessa e revocata**: verificare in Google AI Studio / Google Cloud che quella vecchia sia stata davvero eliminata e che in uso ci sia solo la nuova, impostata su Vercel. Riscrivere la cronologia non rende sicura la chiave: conta solo la revoca.

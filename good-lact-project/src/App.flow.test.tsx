@@ -4,6 +4,7 @@ import { cleanup, render, screen, waitFor, within } from '@testing-library/react
 import userEvent from '@testing-library/user-event';
 import App from './App';
 import { TERMS_VERSION } from './lib/consent';
+import { callCloud, CloudError } from './services/cloud';
 
 const FAKE_ANALYSIS = {
   dishName: 'Tagliatelle ai funghi',
@@ -14,12 +15,20 @@ const FAKE_ANALYSIS = {
   ],
 };
 
+vi.mock('./services/cloud', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('./services/cloud')>()),
+  callCloud: vi.fn(),
+}));
+
+/** Simula la funzione Firebase "analyze": ok → dati, altrimenti errore con il messaggio del server. */
 function mockFetch(handler: (body: unknown) => { ok: boolean; status?: number; json: unknown }) {
-  const fn = vi.fn(async (_url: string, init?: RequestInit) => {
-    const result = handler(init?.body ? JSON.parse(String(init.body)) : null);
-    return { ok: result.ok, status: result.status ?? 200, json: async () => result.json } as Response;
+  const fn = vi.mocked(callCloud);
+  fn.mockReset();
+  fn.mockImplementation(async (_name, data) => {
+    const result = handler(data);
+    if (!result.ok) throw new CloudError(String((result.json as { error?: unknown }).error ?? 'errore'));
+    return result.json;
   });
-  vi.stubGlobal('fetch', fn);
   return fn;
 }
 
@@ -53,7 +62,7 @@ describe('flusso completo', () => {
     expect(await screen.findByText('Controlla il piatto')).toBeTruthy();
     expect(screen.getByText('Burro')).toBeTruthy();
     expect(screen.getByText('Panna')).toBeTruthy();
-    const sent = JSON.parse(String(fetchMock.mock.calls[0][1]?.body));
+    const sent = fetchMock.mock.calls[0][1] as { description: string };
     expect(sent.description).toBe('tagliatelle ai funghi');
 
     await user.click(screen.getByRole('button', { name: /aggiungi al pasto/i }));

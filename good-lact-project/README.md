@@ -31,7 +31,7 @@ L'app avvisa sempre che **non può sapere della contaminazione** (padelle, frigg
 ### Come nasce la stima
 
 - L'AI (Gemini) riconosce gli ingredienti e sceglie una **categoria** (burro, panna, besciamella…) e i grammi.
-- **Il lattosio per 100 g non lo decide l'AI**: arriva da una tabella di riferimento fidata (`api/_lib/reference.js`). Solo per la categoria "altro" l'AI propone un valore, limitato a un massimo.
+- **Il lattosio per 100 g non lo decide l'AI**: arriva da una tabella di riferimento fidata (`functions/lib/reference.js`). Solo per la categoria "altro" l'AI propone un valore, limitato a un massimo.
 - Ogni ingrediente ha una certezza:
   - **Certo** (nominato o visibile): entra in tutte le stime.
   - **Probabile** (tipico della ricetta): entra nella dose consigliata.
@@ -48,8 +48,8 @@ L'app avvisa sempre che **non può sapere della contaminazione** (padelle, frigg
 - **Il mio profilo**: lattasi predefinita, profilo severo, sensibilità, notifiche, backup (esporta/importa JSON). I dati restano sul dispositivo (localStorage); l'import accetta solo chiavi note e dati della forma giusta.
 - **Le mie esperienze**: elenco personale "mi va bene" / "mi dà fastidio". Compare come avviso nel risultato, ma non cambia mai la dose da solo.
 - **Diario sintomi**: 90 minuti dopo l'assunzione chiede come stai. Se i sintomi medi o forti si ripetono suggerisce di *aumentare* la sensibilità (mai di ridurla), ricordando che possono contare tracce di latte o altre cause.
-- **Scanner etichette** (`/api/label`): la foto viene letta dall'AI, ma il verdetto (ok / attenzione / evita) è calcolato dal server con regole fisse. "Senza lattosio" conta solo se il modello cita la frase presente sull'etichetta.
-- **Modalità ristorante** (`/api/menu` + frasi in 5 lingue): foto o testo del menu con piatti ok / chiedi / evita e una nota fissa: dalla foto non si sa cosa succede in cucina.
+- **Scanner etichette** (funzione `label`): la foto viene letta dall'AI, ma il verdetto (ok / attenzione / evita) è calcolato dal server con regole fisse. "Senza lattosio" conta solo se il modello cita la frase presente sull'etichetta.
+- **Modalità ristorante** (funzione `menu` + frasi in 5 lingue): foto o testo del menu con piatti ok / chiedi / evita e una nota fissa: dalla foto non si sa cosa succede in cucina.
 - **Report per il medico**: ultimi 30 giorni di compresse, pasti e sintomi, stampabile o salvabile in PDF.
 - **Schede informative** nelle FAQ: etichette, farmaci, fuori casa, quando parlare con il medico.
 
@@ -60,7 +60,7 @@ L'app avvisa sempre che **non può sapere della contaminazione** (padelle, frigg
 ## Dati e fonti
 
 I valori di lattosio di partenza (448 alimenti in `src/data/goodLactData.ts` e la tabella
-per categoria in `api/_lib/reference.js`) **non derivano da fonti ufficiali verificate**.
+per categoria in `functions/lib/reference.js`) **non derivano da fonti ufficiali verificate**.
 Finché `REFERENCE_DATA_VERIFIED` in `src/data/meta.ts` è `false`, l'app lo scrive nei
 risultati e usa margini più ampi. Ogni voce può avere `reliability`
 (`measured` | `estimated` | `unverified`, predefinito `unverified`) e `source`.
@@ -77,11 +77,10 @@ Per sostituirli con dati veri:
 
 ```bash
 npm install
-cp .env.example .env.local   # poi inserisci GEMINI_API_KEY
-npx vercel dev               # app + funzione /api/analyze insieme
+npm run dev                  # l'app; le funzioni con l'AI girano su Firebase (vedi docs/RILASCIO.md)
 ```
 
-`npm run dev` avvia solo il frontend (senza `/api`, l'analisi mostrerà un errore e si può comporre il piatto a mano).
+`npm run dev` avvia solo il frontend: le funzioni con l'AI stanno su Firebase e richiedono un accesso; senza di esse si può comporre il piatto a mano.
 
 | Comando | Cosa fa |
 | --- | --- |
@@ -98,22 +97,22 @@ npx vercel dev               # app + funzione /api/analyze insieme
 ## Sicurezza
 
 - La chiave Gemini esiste **solo lato server** (mai con prefisso `VITE_`) e viaggia in un header, non nell'URL.
-- `/api/analyze` valida metodo, `Content-Type`, origine, formato e dimensione dell'immagine, lunghezza del testo.
+- La funzione `analyze` richiede l'accesso, applica il tetto giornaliero per utente e valida metodo, `Content-Type`, origine, formato e dimensione dell'immagine, lunghezza del testo.
 - Testo e foto dell'utente sono trattati come dati, non come istruzioni; la risposta del modello viene ripulita campo per campo prima di arrivare all'app.
-- Limite di richieste per IP (in memoria: basta contro abusi banali; per quote giornaliere o Premium serve un archivio condiviso come Upstash Redis).
+- Tetto giornaliero per utente conservato in Firestore (collezione `usage`, chiusa ai client). L'uso illimitato vale solo per email in elenco e verificate.
 - Header di sicurezza e Content-Security-Policy in `vercel.json`.
 - Gli errori dei servizi esterni restano nei log del server, non vengono mai mostrati all'utente.
 
 ## Struttura
 
 ```
-api/analyze.js          funzione serverless: validazione, chiamata a Gemini, ripulitura
-api/_lib/               riferimento lattosio, validazione, rate limit, client Gemini
+functions/index.js      funzioni Firebase (analyze, label, menu): accesso, tetto giornaliero, chiamata a Gemini
+functions/lib/          riferimento lattosio, validazione, tetto giornaliero, client Gemini
 src/lib/dose.ts         calcolo della dose (testato in dose.test.ts)
 src/views/              schermate: principale, piatto, risultato, timer, storico…
 src/hooks/              timer di copertura e registro giornaliero
 src/data/               database alimenti, enzimi, FAQ, frasi per il personale, stato di verifica dei dati
-api/label.js, api/menu.js   scanner etichette e lettura menu (stesse protezioni di api/analyze.js)
+(label e menu: scanner etichette e lettura menu, stesse protezioni di analyze)
 scripts/usda.mjs        importatore del lattosio misurato da USDA FoodData Central
 ```
 
