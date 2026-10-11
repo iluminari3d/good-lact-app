@@ -14,9 +14,9 @@ export const TERMS_SECTIONS: TermsSection[] = [
     title: 'Quali dati usa e dove restano',
     paragraphs: [
       "Sul tuo dispositivo: impostazioni, assunzioni di lattasi, esperienze sui cibi e diario dei sintomi sono salvati nella memoria del browser di questo dispositivo.",
-      "Analisi di piatti, etichette e menu: il testo o la foto che invii vengono trasmessi al nostro server e da lì al servizio Gemini di Google per essere elaborati. Non conserviamo né i testi né le foto. Google li tratta secondo i termini del servizio Gemini API in vigore. Evita di fotografare persone.",
+      "Analisi di piatti, etichette e menu (funzioni con l'AI): servono un account e un accesso. Il testo o la foto che invii vengono trasmessi a una funzione sul cloud di Google (Firebase, regione europea) e da lì al servizio Gemini di Google per essere elaborati. Non conserviamo né i testi né le foto. Per applicare il limite giornaliero conserviamo solo un contatore (identificativo dell'account, giorno e numero di richieste). Google li tratta secondo i termini del servizio Gemini API in vigore. Evita di fotografare persone.",
       "Ricerca per codice a barre: se la usi, il codice che scrivi viene inviato a Open Food Facts (openfoodfacts.org) per ottenere la scheda del prodotto. Non inviamo altri dati.",
-      "Account facoltativo: se accedi, l'indirizzo email e i dati da sincronizzare (impostazioni, esperienze, diario e storico) sono salvati su Firebase, un servizio di Google, e sono leggibili solo dal tuo account.",
+      "Account: è facoltativo per tutto tranne le funzioni con l'AI. Se accedi, l'indirizzo email e i dati da sincronizzare (impostazioni, esperienze, diario e storico) sono salvati su Firebase, un servizio di Google, e sono leggibili solo dal tuo account.",
       "Non usiamo pubblicità, profilazione o strumenti di analisi del comportamento, e non vendiamo né cediamo i tuoi dati.",
     ],
   },

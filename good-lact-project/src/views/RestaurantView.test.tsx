@@ -4,6 +4,7 @@ import { cleanup, render, screen, waitFor, within } from '@testing-library/react
 import userEvent from '@testing-library/user-event';
 import { RestaurantView } from './RestaurantView';
 import { PHRASES } from '../data/phrases';
+import { callCloud, CloudError } from '../services/cloud';
 
 const KITCHEN =
   'Dalla foto non si può sapere cosa succede in cucina (utensili, friggitrice, burro nelle padelle): per un intollerante severo conferma sempre con il personale.';
@@ -17,9 +18,17 @@ const MENU = {
   kitchenNote: KITCHEN,
 };
 
-function mockFetch(json: unknown, ok = true, status = 200) {
-  const fn = vi.fn(async () => ({ ok, status, json: async () => json }) as Response);
-  vi.stubGlobal('fetch', fn);
+vi.mock('../services/cloud', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../services/cloud')>()),
+  callCloud: vi.fn(),
+}));
+
+/** Simula la risposta della funzione Firebase: ok → dati, altrimenti errore con il messaggio del server. */
+function mockFetch(json: unknown, ok = true) {
+  const fn = vi.mocked(callCloud);
+  fn.mockReset();
+  if (ok) fn.mockResolvedValue(json);
+  else fn.mockRejectedValue(new CloudError(String((json as { error?: unknown }).error ?? 'errore')));
   return fn;
 }
 
@@ -76,14 +85,14 @@ describe('RestaurantView - menu', () => {
     const low = screen.getByRole('region', { name: /rischio basso/i });
     expect(within(low).getByText('Orata alla griglia')).toBeTruthy();
 
-    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
-    expect(url).toBe('/api/menu');
-    expect(JSON.parse(String(init.body))).toEqual({ text: 'Penne alla panna, risotto ai funghi' });
+    const [name, payload] = fetchMock.mock.calls[0];
+    expect(name).toBe('menu');
+    expect(payload).toEqual({ text: 'Penne alla panna, risotto ai funghi' });
   });
 
   it('mostra l\'errore se il servizio non risponde', async () => {
     const user = userEvent.setup();
-    mockFetch({ error: 'Servizio non disponibile.' }, false, 502);
+    mockFetch({ error: 'Servizio non disponibile.' }, false);
     render(<RestaurantView onBack={() => {}} />);
     await user.click(screen.getByRole('tab', { name: /leggi il menu/i }));
     await user.type(screen.getByLabelText(/incolla il testo del menu/i), 'Pizza');
