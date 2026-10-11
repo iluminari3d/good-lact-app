@@ -106,3 +106,26 @@ Fonti principali: USDA SR28 (mirror GitHub syntagmatic/usda-sqlite), studio AILI
 - **Revisione per farmacisti oncologici (J Oncol Pharm Pract, DOI 10.1177/10781552251352203) - solo abstract letto**: Il lattosio e' un eccipiente molto diffuso; gli autori, misurando il lattosio in forme orali solide oncologiche, concludono che la maggior parte dei pazienti con intolleranza riferita dovrebbe tollerare quantita' molto superiori al massimo giornaliero presente in compresse e capsule oncologiche; i sintomi gastrointestinali vanno valutati considerando anche reazioni avverse e altre condizioni. Nessun valore numerico nell'abstract. (https://www.citedrive.com/en/discovery/lactose-intolerance-or-gastrointestinal-adverse-drug-effect-guidance-for-oncology-pharmacists)
 - **EFA (federazione associazioni pazienti allergie/vie respiratorie) - posizione sulla consultazione EMA**: Sostiene l'estensione delle informazioni sul lattosio ai medicinali inalatori e parenterali (finora solo orali) e la soglia zero per via parenterale in pazienti allergici al latte; chiede di considerare le proteine del latte nei polveri inalatori. (https://www.efanet.org/images/EMA_public_consultation_on_lactose_as_excipient_-_EFA_position_FINAL.pdf)
 - **emc (UK) - SmPC Foradil, esempio inalatori**: Esempio di formulazione RCP: 25 mg di lattosio per capsula (sez. 2); meno di 500 microgrammi per dose erogata, quantita' che 'non causa normalmente problemi' in pazienti intolleranti (sez. 4.4); il lattosio contiene piccole quantita' di proteine del latte (sez. 4.8). (https://www.medicines.org.uk/emc/product/1030/smpc)
+
+## Fast food (schede allergeni ufficiali fornite da Francesco, 2026-10-11)
+
+Dati in `good-lact-project/src/data/db/fastfood.json`: 12 catene, 1.854 voci. Per ogni voce: contiene latte (sì / no / da verificare) e tracce, come segnati nella colonna Latte della scheda. **Non sono grammi di lattosio e non entrano nel calcolo della dose.** «Non segnalato» non è una garanzia: la contaminazione crociata resta possibile.
+
+| Catena | Voci | Scheda |
+|---|---|---|
+| Starbucks | 755 | Rev. 57 del 07/05/2026 (cibo), Rev. 46 (bevande); include 42 voci limited edition di 3 negozi |
+| Roadhouse | 181 | Rev. n.10 luglio 2026 |
+| Old Wild West | 166 | senza data, due tabelle in parte discordanti |
+| KFC | 169 | senza data; catena riconosciuta dai nomi dei prodotti |
+| Poke House | 136 | 13/02/2026 |
+| Domino's | 133 | maggio 2021 (datata) |
+| Burger King | 94 | 22/12/2025 |
+| Subway | 69 | agosto 2026 |
+| Spizzico | 56 | 4 maggio 2021 (datata) |
+| Five Guys | 41 | versione ITA 170826 |
+| Panino Giusto | 30 | menu del locale di Fidenza, luglio 2025 |
+| Wiener Haus | 24 | delivery 2020 (datata) |
+
+Regole applicate: «può contenere» = tracce (non «contiene»); se la scheda cita ingredienti con latte, la voce è «contiene latte» anche con cella vuota (2 casi Domino's: insaporitore all'aglio, tortino al cioccolato); celle incoerenti tra tabelle = «da verificare».
+
+Esclusi: **McDonald's** (il PDF ricevuto è McDonald's Svizzera, non Italia), **Rossopomodoro** (menu 2014 / scansione 2017, non schede allergeni), **Flower Burger** (menu senza allergeni). Verifica: ogni agente ha controllato a vista le righe su pagine rasterizzate (0 errori); per Burger King ho riconfermato i conteggi della colonna Latte (63 contiene, 14 tracce, 17 senza segno).

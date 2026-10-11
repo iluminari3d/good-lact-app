@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { FOODS_DATA } from '../goodLactData';
 import farmaci from './farmaci.json';
+import fastfood from './fastfood.json';
 import prodotti from './prodotti.json';
 import { DB_ALIMENTI, DB_PIATTI, dishLactosePerPortion } from './index';
 
@@ -62,6 +63,27 @@ describe('database offline: qualità dei dati', () => {
       expect(isUrl(d.sourceUrl), d.key).toBe(true);
       expect(d.checkedAt, d.key).toMatch(/^\d{4}-\d{2}-\d{2}$/);
       if (d.lactoseMgPerUnit != null) expect(d.lactoseMgPerUnit, d.key).toBeGreaterThanOrEqual(0);
+    }
+  });
+
+  it('fast food: catene, chiavi uniche, stati validi, nessuna scheda estera', () => {
+    const names = fastfood.chains.map((c) => c.name);
+    expect(names).not.toContain("McDonald's"); // la scheda ricevuta è svizzera, non italiana
+    expect(fastfood.chains.length).toBeGreaterThanOrEqual(10);
+    for (const c of fastfood.chains) {
+      const keys = new Set<string>();
+      expect(c.docDate.length, c.name).toBeGreaterThan(3);
+      for (const i of c.items) {
+        expect(keys.has(i.k), `duplicato ${i.k}`).toBe(false);
+        keys.add(i.k);
+        expect([0, 1, null]).toContain(i.m);
+        expect([0, 1, null]).toContain(i.t);
+        expect(i.n.length, i.k).toBeGreaterThan(0);
+      }
+    }
+    // Se la scheda cita ingredienti con latte, la voce non può risultare "non segnalato".
+    for (const c of fastfood.chains) for (const i of c.items) {
+      if (/^(Gli ingredienti riportano|Ingredienti con latte)/.test(i.x)) expect(i.m, i.k).toBe(1);
     }
   });
 });
