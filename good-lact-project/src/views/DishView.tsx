@@ -158,7 +158,7 @@ export function DishView({ dish, isNew, severe, onChange, onConfirm, onCancel }:
                   <span className="text-xs font-bold text-slate-400">g</span>
                 </div>
                 <span className="text-xs font-black text-slate-500 w-full text-right">
-                  {negligible ? 'tracce trascurabili' : `≈ ${formatGrams(lactose)} g di lattosio`}
+                  {negligible ? 'valore trascurabile (conta 0)' : `≈ ${formatGrams(lactose)} g di lattosio`}
                 </span>
               </div>
             </div>

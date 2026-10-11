@@ -76,7 +76,9 @@ export function DataStatusNotice() {
       <Info size={20} className="text-slate-400 shrink-0 mt-0.5" />
       <p className="text-sm text-slate-500 font-medium">
         I valori di lattosio sono <strong>indicativi</strong>: non sono ancora verificati su fonti ufficiali.
-        Per questo il calcolo applica margini di sicurezza più ampi.
+        Anche il rapporto tra lattasi e lattosio è una <strong>stima prudenziale</strong> (1.000 FCC per grammo; le
+        fonti vanno da circa 200 a 1.500 e nessuna è uno studio clinico). Per questo il calcolo applica margini di
+        sicurezza più ampi. Dettagli nelle FAQ.
       </p>
     </div>
   );

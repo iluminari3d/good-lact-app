@@ -122,7 +122,7 @@ describe('stima della dose', () => {
       { id: 'f', kind: 'food', name: 'Ricotta vaccina', foodKey: 'ricotta-vaccina', quantity: 100, unit: 'grammi' },
     ];
     const est = estimateDose(meal, 3000, 1);
-    expect(est.lactoseExpected).toBeCloseTo(3);
+    expect(est.lactoseExpected).toBeCloseTo(3.5);
     expect(est.confidence).toBe('high');
   });
 
@@ -235,7 +235,8 @@ describe('modalità intolleranza severa', () => {
     ];
     const std = estimateDose(ricotta, 3000, 1);
     const sev = estimateDose(ricotta, 3000, 1, severe);
-    expect(sev.lactoseCautious / sev.lactoseExpected).toBeCloseTo(1.5);
+    // ricotta: valore da rassegna (affidabilità 'estimated' = +30% in modalità severa)
+    expect(sev.lactoseCautious / sev.lactoseExpected).toBeCloseTo(1.3);
     expect(std.lactoseCautious / std.lactoseExpected).toBeCloseTo(1.1);
   });
 });
@@ -256,5 +257,29 @@ describe('tolleranze personali di Francesco', () => {
     for (const key of ['maionese-industriale', 'salsa-caesar', 'tramezzino-tonno']) {
       expect(estimateDose(food(key), 3000, 1, severe).pillsRecommended).toBeGreaterThan(0);
     }
+  });
+});
+
+describe('dose minima e nel dubbio', () => {
+  const dish = (grams: number, per100: number, certainty: 'certain' | 'likely' | 'possible') => ({
+    id: 'd', kind: 'dish' as const, name: 'Piatto', quantity: 1, unit: 'porzione',
+    dish: { ingredients: [{ id: 'i', name: 'Ing', grams, lactosePer100g: per100, certainty, source: 'ai' as const, active: true }] },
+  });
+  it('un pasto con poco lattosio dà il minimo e dice che il calcolo ne darebbe meno', () => {
+    const est = estimateDose([dish(100, 0.64, 'certain')] as never, 20000, 1, { severe: true });
+    expect(est.pillsRecommended).toBe(0.5);
+    expect(est.minimumApplied).toBe(true);
+    expect(est.pillsRaw).toBeLessThan(0.1);
+    expect(est.doubtMinimum).toBe(false);
+  });
+  it('nel dubbio (ingrediente incerto sotto soglia) propone il minimo, non zero', () => {
+    const est = estimateDose([dish(2, 0.5, 'possible')] as never, 20000, 1, { severe: true });
+    expect(est.doubtMinimum).toBe(true);
+    expect(est.pillsRecommended).toBe(0.5);
+  });
+  it('un ingrediente certo sotto soglia resta a zero', () => {
+    const est = estimateDose([dish(2, 0.5, 'certain')] as never, 20000, 1, { severe: true });
+    expect(est.pillsRecommended).toBe(0);
+    expect(est.doubtMinimum).toBe(false);
   });
 });
