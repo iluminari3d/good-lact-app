@@ -113,7 +113,7 @@ function fromFood(item: MealItem, profile: Profile): Contribution | null {
   if (food.isLactoseFree) return null;
   const lactose =
     food.lactoseMode === 'perPortion'
-      ? (food.lactosePerPortion ?? 0) * item.quantity
+      ? (food.lactosePerPortion ?? 0) * (item.unit === 'porzione' ? item.quantity : 1)
       : ((item.quantity * (UNITS_DATA[item.unit]?.multiplier ?? 0)) / 100) * (food.lactosePer100g ?? 0);
   if (!(lactose >= profile.negligible) || !(lactose > 0)) return null;
   // Un alimento scelto dal database con peso indicato è un dato certo,
@@ -131,12 +131,16 @@ function fromFood(item: MealItem, profile: Profile): Contribution | null {
 /** Quantità iniziale sensata quando si aggiunge un alimento dal database. */
 export function defaultQuantityFor(foodKey: string): { quantity: number; unit: string } {
   const food = FOODS_DATA[foodKey];
+  // I piatti con lattosio per porzione si contano in porzioni, non in grammi.
+  if (food?.lactoseMode === 'perPortion') return { quantity: 1, unit: 'porzione' };
   const per100 = food?.lactosePer100g ?? 0;
   const perPortion = food?.lactosePerPortion ?? 0;
   if (per100 > 0 && perPortion > 0) {
     const grams = Math.round((perPortion / per100) * 100 / 5) * 5;
     if (grams >= 10 && grams <= 500) return { quantity: grams, unit: 'grammi' };
   }
+  // Prodotti in polvere (lattosio > 20 g ogni 100 g): 100 g sono una quantità irrealistica da consumare.
+  if (per100 > 20) return { quantity: 30, unit: 'grammi' };
   return { quantity: 100, unit: 'grammi' };
 }
 

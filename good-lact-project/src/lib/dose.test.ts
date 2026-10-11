@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { confidenceFor, defaultQuantityFor, estimateDose, pillsFor, roundToHalf } from './dose';
 import type { DishIngredient, MealItem } from '../types';
+import { FOODS_DATA } from '../data/goodLactData';
 
 const ing = (over: Partial<DishIngredient>): DishIngredient => ({
   id: 'x',
@@ -281,5 +282,27 @@ describe('dose minima e nel dubbio', () => {
     const est = estimateDose([dish(2, 0.5, 'certain')] as never, 20000, 1, { severe: true });
     expect(est.pillsRecommended).toBe(0);
     expect(est.doubtMinimum).toBe(false);
+  });
+});
+
+describe('ogni voce del database con la quantità iniziale dà un risultato plausibile', () => {
+  it('lattosio e compresse restano in un intervallo sensato (blocca errori di unità)', () => {
+    const bad: string[] = [];
+    for (const [key, food] of Object.entries(FOODS_DATA)) {
+      if (food.lactoseMode === 'builder') continue;
+      const { quantity, unit } = defaultQuantityFor(key);
+      const est = estimateDose([{ id: 'x', kind: 'food', name: food.name, foodKey: key, quantity, unit }], 20000, 1, { severe: true });
+      // Un singolo alimento a quantità tipica: nessuno supera 60 g di lattosio (≈1,2 l di latte).
+      if (est.lactoseCautious > 60 || est.pillsRecommended > 4) bad.push(`${key}: ${est.lactoseCautious.toFixed(1)} g`);
+    }
+    expect(bad).toEqual([]);
+  });
+
+  it('un piatto "a porzione" parte da una porzione e vale il suo lattosio', () => {
+    const key = 'gnocchi-alla-romana';
+    const q = defaultQuantityFor(key);
+    expect(q).toEqual({ quantity: 1, unit: 'porzione' });
+    const est = estimateDose([{ id: 'x', kind: 'food', name: 'Gnocchi', foodKey: key, quantity: q.quantity, unit: q.unit }], 20000, 1);
+    expect(est.lactoseExpected).toBeCloseTo(FOODS_DATA[key].lactosePerPortion ?? -1, 2);
   });
 });

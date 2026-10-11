@@ -281,16 +281,21 @@ export function MainView(props: Props) {
                   {item.dish?.ingredients.filter((i) => i.active).length ?? 0} ingredienti considerati
                 </p>
               ) : (
-                <div className="flex gap-4">
+                <div className="flex gap-4 items-center">
                   <input
                     type="number"
                     min={0}
                     inputMode="decimal"
-                    aria-label="Quantità"
+                    aria-label={FOODS_DATA[item.foodKey ?? '']?.lactoseMode === 'perPortion' ? 'Porzioni' : 'Quantità'}
                     value={item.quantity || ''}
                     onChange={(e) => updateItem(item.id, { quantity: Math.max(0, Number(e.target.value)) })}
                     className="w-24 p-3 bg-slate-50 border-2 border-transparent focus:border-primary/20 rounded-xl text-sm font-bold outline-none text-center"
                   />
+                  {FOODS_DATA[item.foodKey ?? '']?.lactoseMode === 'perPortion' ? (
+                    <span className="flex-1 text-sm font-bold text-slate-500">
+                      {item.quantity === 1 ? 'porzione' : 'porzioni'} <span className="text-xs font-medium text-slate-400">(porzione tipica da ricetta)</span>
+                    </span>
+                  ) : (
                   <select
                     aria-label="Unità di misura"
                     value={item.unit}
@@ -301,6 +306,7 @@ export function MainView(props: Props) {
                       .filter(([k]) => k !== 'porzione')
                       .map(([k, u]) => (<option key={k} value={k}>{u.name}</option>))}
                   </select>
+                  )}
                 </div>
               )}
             </div>
