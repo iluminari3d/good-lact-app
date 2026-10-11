@@ -28,7 +28,7 @@ export function DishView({ dish, isNew, severe, onChange, onConfirm, onCancel }:
   const results =
     term.length > 0
       ? Object.entries(FOODS_DATA)
-          .filter(([key, f]) => key !== 'custom-dish' && f.lactoseMode !== 'builder' && f.name.toLowerCase().includes(term))
+          .filter(([key, f]) => key !== 'custom-dish' && f.lactoseMode !== 'builder' && f.lactoseMode !== 'perPortion' && f.name.toLowerCase().includes(term))
           .slice(0, 20)
       : [];
 
