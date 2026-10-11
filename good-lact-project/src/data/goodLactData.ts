@@ -1,3 +1,4 @@
+import { EXTRA_FOODS } from './db';
 /**
  * Quanto è affidabile il valore di lattosio di una voce:
  * - measured: misurato e tratto da una fonte ufficiale (indicata in `source`)
@@ -19,6 +20,8 @@ export interface FoodInfo {
   reliability?: Reliability;
   /** Fonte del dato, es. "USDA FDC 170851" o "BDA IEO". */
   source?: string;
+  /** Pagina da cui è stato letto il dato (utile solo quando si è online). */
+  sourceUrl?: string;
 }
 
 export interface UnitInfo {
@@ -30,12 +33,12 @@ export const LACTASE_DATA: Record<string, { name: string; fcc: number; info: str
   'lactoint': { 
     name: 'Lactoint (3000 FCC)', 
     fcc: 3000, 
-    info: 'Compresse masticabili. Ideale per piccoli snack.' 
+    info: 'Compresse masticabili. Ideale per piccoli snack. FCC non confermato da una fonte: controlla la confezione.' 
   },
   'lactoint-forte': { 
     name: 'Lactoint Forte (15000 FCC)', 
     fcc: 15000, 
-    info: 'Alta concentrazione. Ideale per pasti completi.' 
+    info: 'Alta concentrazione. Ideale per pasti completi. FCC non confermato da una fonte: controlla la confezione.' 
   },
   'lactojoy': {
     name: 'Lactojoy (14500 FCC)',
@@ -65,7 +68,7 @@ export const LACTASE_DATA: Record<string, { name: string; fcc: number; info: str
   'intoleran-drops': {
     name: 'Intoleran Gocce (Lactase)',
     fcc: 750, // Per 5 gocce solitamente
-    info: 'Gocce enzimatiche per pre-trattare il latte o l\'assunzione liquida.'
+    info: 'Gocce enzimatiche per pre-trattare il latte o l\'assunzione liquida. FCC non confermato da una fonte: controlla la confezione.'
   },
   'silact-fast': { 
     name: 'Silact Fast (4500 FCC)', 
@@ -75,8 +78,14 @@ export const LACTASE_DATA: Record<string, { name: string; fcc: number; info: str
   'disolatt-plus': { 
     name: 'Disolatt Plus (10000 FCC)', 
     fcc: 10000, 
-    info: 'Enzima con probiotici.' 
+    info: 'Enzima con probiotici. FCC non confermato da una fonte: controlla la confezione.' 
   },
+  'lactease-4500': { name: 'Lactease (Crinos, 4500 FCC)', fcc: 4500, info: 'Compresse masticabili da 4500 FCC. Controlla il valore sulla tua confezione.' },
+  'milljoy-4500': { name: 'Mill&Joy (Teva, 4500 FCC)', fcc: 4500, info: 'Compresse masticabili da 4500 FCC. Controlla il valore sulla tua confezione.' },
+  'lacdigest-4500': { name: 'Lacdigest Lactofree (4500 FCC)', fcc: 4500, info: 'Compresse masticabili da 4500 FCC. Controlla il valore sulla tua confezione.' },
+  'lactosolution-15000': { name: 'Lactosolution (15000 FCC)', fcc: 15000, info: 'Compresse da 15000 FCC. Controlla il valore sulla tua confezione.' },
+  'lactosolv-17500': { name: 'Lactosolv (17500 FCC)', fcc: 17500, info: 'Capsule da 17500 FCC. Controlla il valore sulla tua confezione.' },
+  'longlife-milk-digest-5000': { name: 'Long Life Milk Digest (5000 FCC)', fcc: 5000, info: 'Compresse masticabili da 5000 FCC. Controlla il valore sulla tua confezione.' },
   'custom': { 
     name: 'Altro / Manuale', 
     fcc: 0, 
@@ -84,7 +93,7 @@ export const LACTASE_DATA: Record<string, { name: string; fcc: number; info: str
   }
 };
 
-export const FOODS_DATA: Record<string, FoodInfo> = {
+const BASE_FOODS: Record<string, FoodInfo> = {
   // --- BUILDER ---
   'custom-dish': { name: 'Crea un Piatto Composto...', lactoseMode: 'builder' },
 
@@ -537,6 +546,9 @@ export const FOODS_DATA: Record<string, FoodInfo> = {
   'taiyaki-crema': { name: 'Taiyaki con crema pasticcera', lactosePer100g: 3.00, lactosePerPortion: 2.40, lactoseMode: 'weight', category: 'Dolci e pasticceria' },
   'daifuku-panna': { name: 'Daifuku con panna', lactosePer100g: 2.50, lactosePerPortion: 1.50, lactoseMode: 'weight', category: 'Dolci e pasticceria' }
 };
+
+/** Alimenti e piatti di base + database ampliato (le voci di base hanno la precedenza). */
+export const FOODS_DATA: Record<string, FoodInfo> = { ...EXTRA_FOODS, ...BASE_FOODS };
 
 export const UNITS_DATA: Record<string, UnitInfo> = {
   'grammi': { name: 'grammi (g)', multiplier: 1 },

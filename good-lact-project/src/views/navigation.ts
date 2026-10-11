@@ -1,6 +1,6 @@
 export type NavView =
   | 'main' | 'label' | 'restaurant' | 'diary' | 'more'
-  | 'experiences' | 'report' | 'history' | 'settings' | 'faq' | 'terms';
+  | 'experiences' | 'report' | 'history' | 'settings' | 'faq' | 'terms' | 'database';
 
 /** Schermate che fanno parte del flusso "pasto": per la barra restano sotto "Pasto". */
 export const MEAL_FLOW = ['main', 'dish', 'results', 'timer', 'lactose-free'] as const;
