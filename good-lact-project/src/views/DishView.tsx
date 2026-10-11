@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle2, Plus, Search, Trash2 } from 'lucide-react';
 import { FOODS_DATA } from '../data/goodLactData';
+import { searchItems } from '../lib/search';
 import { defaultQuantityFor, negligibleFor } from '../lib/dose';
 import { cn } from '../lib/cn';
 import { formatGrams } from '../lib/format';
@@ -24,13 +25,14 @@ function lactoseOf(ing: DishIngredient): number {
 
 export function DishView({ dish, isNew, severe, onChange, onConfirm, onCancel }: Props) {
   const [search, setSearch] = useState('');
-  const term = search.trim().toLowerCase();
-  const results =
-    term.length > 0
-      ? Object.entries(FOODS_DATA)
-          .filter(([key, f]) => key !== 'custom-dish' && f.lactoseMode !== 'builder' && f.lactoseMode !== 'perPortion' && f.name.toLowerCase().includes(term))
-          .slice(0, 20)
-      : [];
+  const term = search.trim();
+  const results = searchItems(
+    Object.entries(FOODS_DATA).filter(([key, f]) => key !== 'custom-dish' && f.lactoseMode !== 'builder' && f.lactoseMode !== 'perPortion'),
+    term,
+    ([, f]) => f.name,
+    ([, f]) => f.category ?? '',
+    20,
+  );
 
   const update = (id: string, patch: Partial<DishIngredient>) =>
     onChange({ ...dish, ingredients: dish.ingredients.map((i) => (i.id === id ? { ...i, ...patch } : i)) });

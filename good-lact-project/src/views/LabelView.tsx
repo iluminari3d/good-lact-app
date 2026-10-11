@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { AlertTriangle, Camera, CheckCircle2, CircleHelp, Image as ImageIcon, RotateCcw, ScanLine, XOctagon } from 'lucide-react';
+import { AlertTriangle, Camera, CheckCircle2, CircleHelp, Image as ImageIcon, RotateCcw, ScanLine, Barcode, XOctagon } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '../lib/cn';
 import { prepareImage, type PreparedImage } from '../lib/image';
+import { isValidEan, lookupBarcode, type BarcodeProduct } from '../services/barcodeApi';
 import { scanLabel, type LabelResult, type LabelVerdict } from '../services/labelApi';
 import { BackButton } from './ui';
 
@@ -53,6 +54,30 @@ export function LabelView({ onBack }: Props) {
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => () => abortRef.current?.abort(), []);
+
+  const [ean, setEan] = useState('');
+  const [barcodeLoading, setBarcodeLoading] = useState(false);
+  const [barcodeError, setBarcodeError] = useState<string | null>(null);
+  const [barcodeResult, setBarcodeResult] = useState<BarcodeProduct | 'none' | null>(null);
+
+  const searchBarcode = async (raw: string) => {
+    const code = raw.replace(/\s/g, '');
+    if (barcodeLoading) return;
+    setBarcodeError(null);
+    setBarcodeResult(null);
+    if (!isValidEan(code)) {
+      setBarcodeError('Il codice a barre non è valido: servono 8, 12, 13 o 14 cifre.');
+      return;
+    }
+    setBarcodeLoading(true);
+    try {
+      setBarcodeResult((await lookupBarcode(code)) ?? 'none');
+    } catch (e) {
+      setBarcodeError(e instanceof Error ? e.message : 'Ricerca non riuscita.');
+    } finally {
+      setBarcodeLoading(false);
+    }
+  };
 
   const handleFile = async (file: File | undefined) => {
     if (!file) return;
@@ -183,6 +208,52 @@ export function LabelView({ onBack }: Props) {
             </>
           )}
         </button>
+      </div>
+
+
+      <div className="glass-card p-6 space-y-4">
+        <h3 className="text-lg font-black text-slate-800 flex items-center gap-2"><Barcode size={20} className="text-primary" /> Cerca con il codice a barre</h3>
+        <p className="text-xs text-slate-500 font-medium">
+          Scrivi le cifre sotto il codice a barre. I dati vengono da Open Food Facts, un archivio collaborativo: possono essere
+          vecchi o incompleti. Controlla sempre l'etichetta.
+        </p>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            inputMode="numeric"
+            autoComplete="off"
+            maxLength={14}
+            value={ean}
+            onChange={(e) => setEan(e.target.value.replace(/[^\d]/g, ''))}
+            onKeyDown={(e) => { if (e.key === 'Enter') void searchBarcode(ean); }}
+            aria-label="Codice a barre"
+            placeholder="es. 8001234567890"
+            className="flex-1 min-w-0 p-4 bg-slate-50 rounded-2xl font-bold outline-none"
+          />
+          <button type="button" onClick={() => void searchBarcode(ean)} disabled={barcodeLoading || !ean} className="px-5 bg-primary text-white font-black rounded-2xl disabled:opacity-40">
+            {barcodeLoading ? '…' : 'Cerca'}
+          </button>
+        </div>
+        <div aria-live="polite" className="space-y-3">
+          {barcodeError && <p role="alert" className="text-sm font-semibold text-red-700">{barcodeError}</p>}
+          {barcodeResult === 'none' && (
+            <p className="p-4 bg-slate-100 rounded-2xl text-sm font-semibold text-slate-700">Prodotto non presente in Open Food Facts. Prova a fotografare l'etichetta qui sopra.</p>
+          )}
+          {barcodeResult && barcodeResult !== 'none' && (
+            <div className="p-5 bg-white border border-slate-200 rounded-3xl space-y-2">
+              <p className="font-black text-slate-800">{barcodeResult.name}{barcodeResult.brand && ` · ${barcodeResult.brand}`}</p>
+              {barcodeResult.milkAllergen && <p className="text-sm font-bold text-red-700">La scheda indica latte tra gli allergeni.</p>}
+              {barcodeResult.milkTraces && <p className="text-sm font-bold text-amber-700">La scheda indica possibili tracce di latte.</p>}
+              {barcodeResult.lactoseFreeLabel && <p className="text-sm font-bold text-emerald-700">La scheda riporta la dicitura «senza lattosio» (non verificata).</p>}
+              {!barcodeResult.milkAllergen && !barcodeResult.milkTraces && !barcodeResult.incomplete && (
+                <p className="text-sm font-medium text-slate-600">Latte non segnalato nella scheda. Non è una garanzia: verifica l'etichetta.</p>
+              )}
+              {barcodeResult.incomplete && <p className="text-sm font-semibold text-amber-700">Scheda incompleta: mancano ingredienti e allergeni. Non posso dirti nulla.</p>}
+              {barcodeResult.ingredients && <p className="text-xs text-slate-500 font-medium">Ingredienti: {barcodeResult.ingredients}</p>}
+              <p className="text-[11px] text-slate-400 font-medium">Fonte: Open Food Facts (collaborativo, non verificato) · codice {barcodeResult.code}</p>
+            </div>
+          )}
+        </div>
       </div>
 
       <div aria-live="polite" className="space-y-4">

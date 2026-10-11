@@ -39,6 +39,7 @@ import { MoreView } from './views/MoreView';
 import { TermsView } from './views/TermsView';
 import { NavBar } from './views/NavBar';
 import type { NavView } from './views/navigation';
+import { applyTextScale, isTextScale, type TextScale } from './lib/textScale';
 
 type View = 'dish' | 'results' | 'timer' | 'lactose-free' | NavView;
 
@@ -49,6 +50,8 @@ interface Settings {
   notifications: boolean;
   lactaseKey: string;
   customFcc: number | '';
+  /** Dimensione del testo: l'app non si può ingrandire con il pizzico, quindi si sceglie qui. */
+  textScale?: TextScale;
 }
 
 interface DishDraft {
@@ -57,7 +60,7 @@ interface DishDraft {
   dish: Dish;
 }
 
-const DEFAULT_SETTINGS: Settings = { sensitivity: 1, severe: true, notifications: false, lactaseKey: '', customFcc: '' };
+const DEFAULT_SETTINGS: Settings = { sensitivity: 1, severe: true, notifications: false, lactaseKey: '', customFcc: '', textScale: 'normal' };
 
 function isSettings(v: unknown): v is Settings {
   if (!v || typeof v !== 'object') return false;
@@ -67,7 +70,8 @@ function isSettings(v: unknown): v is Settings {
     (s.severe === undefined || typeof s.severe === 'boolean') &&
     typeof s.notifications === 'boolean' &&
     typeof s.lactaseKey === 'string' &&
-    (s.customFcc === '' || typeof s.customFcc === 'number')
+    (s.customFcc === '' || typeof s.customFcc === 'number') &&
+    (s.textScale === undefined || isTextScale(s.textScale))
   );
 }
 
@@ -99,6 +103,7 @@ export default function App() {
   }, []);
 
   useEffect(() => save('settings', settings), [settings]);
+  useEffect(() => applyTextScale(settings.textScale ?? 'normal'), [settings.textScale]);
   useEffect(() => () => abortRef.current?.abort(), []);
 
   const fccPerPill = useMemo(() => {
@@ -328,6 +333,8 @@ export default function App() {
               customFcc={settings.customFcc}
               onLactaseChange={(lactaseKey) => patchSettings({ lactaseKey })}
               onCustomFccChange={(customFcc) => patchSettings({ customFcc })}
+              textScale={settings.textScale ?? 'normal'}
+              onTextScaleChange={(textScale) => patchSettings({ textScale })}
               onBack={goMain}
             />
           )}

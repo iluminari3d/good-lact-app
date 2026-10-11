@@ -1,10 +1,11 @@
 import { motion } from 'framer-motion';
-import { Database, ExternalLink, Search } from 'lucide-react';
+import { Database, ExternalLink, Flag, Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import farmaciJson from '../data/db/farmaci.json';
 import fastfoodJson from '../data/db/fastfood.json';
 import prodottiJson from '../data/db/prodotti.json';
 import { cn } from '../lib/cn';
+import { searchItems } from '../lib/search';
 import { BackButton } from './ui';
 
 type Reliability = 'measured' | 'estimated' | 'unverified';
@@ -27,6 +28,17 @@ interface FastChain { id: string; name: string; docTitle: string; docDate: strin
 const CHAINS = fastfoodJson.chains as FastChain[];
 const FAST_TOTAL = CHAINS.reduce((n, c) => n + c.items.length, 0);
 const PAGE = 60;
+const ALL_LIMIT = 8;
+
+function ReportLink({ what }: { what: string }) {
+  const subject = encodeURIComponent(`Good Lact – segnalazione dato: ${what}`);
+  const body = encodeURIComponent(`Voce: ${what}\n\nCosa non torna (e, se puoi, dove l'hai verificato):\n`);
+  return (
+    <a href={`mailto:info@iluminari3d.com?subject=${subject}&body=${body}`} className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-400 hover:text-primary">
+      <Flag size={11} /> Segnala un errore
+    </a>
+  );
+}
 
 /** Mai "senza latte": una cella vuota in scheda vuol dire solo "non segnalato". */
 function fastStatus(i: FastItem): { label: string; cls: string } {
@@ -66,22 +78,29 @@ function SourceLink({ url, source, checkedAt }: { url: string; source: string; c
 }
 
 export function DatabaseView({ onBack }: { onBack: () => void }) {
-  const [tab, setTab] = useState<'prodotti' | 'farmaci' | 'fastfood'>('prodotti');
+  const [tab, setTab] = useState<'tutto' | 'prodotti' | 'farmaci' | 'fastfood'>('tutto');
   const [chainId, setChainId] = useState(CHAINS[0]?.id ?? '');
   const [shown, setShown] = useState(PAGE);
   const [query, setQuery] = useState('');
   const term = query.trim().toLowerCase();
 
   const products = useMemo(
-    () => PRODUCTS.filter((p) => !term || `${p.brand} ${p.name} ${p.category}`.toLowerCase().includes(term)),
+    () => (term ? searchItems(PRODUCTS, term, (p) => `${p.brand} ${p.name}`, (p) => p.category, 400) : PRODUCTS),
     [term],
   );
   const chain = CHAINS.find((c) => c.id === chainId) ?? CHAINS[0];
   const fast = useMemo(
-    () => (chain ? chain.items.filter((i) => !term || `${i.n} ${i.c}`.toLowerCase().includes(term)) : []),
+    () => (!chain ? [] : term ? searchItems(chain.items, term, (i) => i.n, (i) => i.c, 400) : chain.items),
     [chain, term],
   );
-  const drugs = useMemo(() => DRUGS.filter((d) => !term || `${d.name} ${d.form}`.toLowerCase().includes(term)), [term]);
+  const drugs = useMemo(
+    () => (term ? searchItems(DRUGS, term, (d) => d.name, (d) => d.form, 400) : DRUGS),
+    [term],
+  );
+  const allFast = useMemo(
+    () => (term ? CHAINS.flatMap((c) => searchItems(c.items, term, (i) => i.n, (i) => i.c, ALL_LIMIT).map((i) => ({ chain: c.name, item: i }))).slice(0, ALL_LIMIT) : []),
+    [term],
+  );
 
   return (
     <motion.div key="database" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-6">
@@ -93,7 +112,7 @@ export function DatabaseView({ onBack }: { onBack: () => void }) {
       </p>
 
       <div className="flex gap-2" role="tablist" aria-label="Sezioni della banca dati">
-        {(['prodotti', 'farmaci', 'fastfood'] as const).map((t) => (
+        {(['tutto', 'prodotti', 'farmaci', 'fastfood'] as const).map((t) => (
           <button
             key={t}
             type="button"
@@ -102,7 +121,7 @@ export function DatabaseView({ onBack }: { onBack: () => void }) {
             onClick={() => { setTab(t); setShown(PAGE); }}
             className={cn('flex-1 py-3 rounded-2xl font-black text-xs sm:text-sm', tab === t ? 'bg-primary text-white' : 'bg-slate-100 text-slate-500')}
           >
-            {t === 'prodotti' ? `Prodotti (${PRODUCTS.length})` : t === 'farmaci' ? `Farmaci (${DRUGS.length})` : `Fast food (${FAST_TOTAL})`}
+            {t === 'tutto' ? 'Tutto' : t === 'prodotti' ? `Prodotti (${PRODUCTS.length})` : t === 'farmaci' ? `Farmaci (${DRUGS.length})` : `Fast food (${FAST_TOTAL})`}
           </button>
         ))}
       </div>
@@ -112,7 +131,7 @@ export function DatabaseView({ onBack }: { onBack: () => void }) {
         <input
           value={query}
           onChange={(e) => { setQuery(e.target.value); setShown(PAGE); }}
-          placeholder={tab === 'prodotti' ? 'Cerca marca o prodotto…' : tab === 'farmaci' ? 'Cerca farmaco o principio attivo…' : 'Cerca nel menu…'}
+          placeholder={tab === 'tutto' ? 'Cerca prodotto, farmaco o piatto…' : tab === 'prodotti' ? 'Cerca marca o prodotto…' : tab === 'farmaci' ? 'Cerca farmaco o principio attivo…' : 'Cerca nel menu…'}
           aria-label="Cerca nella banca dati"
           className="w-full pl-11 pr-4 py-4 bg-slate-50 rounded-2xl font-medium outline-none focus:ring-2 focus:ring-primary/20"
         />
@@ -141,7 +160,7 @@ export function DatabaseView({ onBack }: { onBack: () => void }) {
       )}
 
       <ul className="space-y-3 pb-10">
-        {tab === 'prodotti' && products.map((p) => (
+        {(tab === 'prodotti' || (tab === 'tutto' && term)) && (tab === 'tutto' ? products.slice(0, ALL_LIMIT) : products).map((p) => (
           <li key={p.key} className="p-5 bg-white border border-slate-100 rounded-[2rem] shadow-sm space-y-2">
             <div className="flex items-start justify-between gap-3">
               <p className="font-bold text-slate-800">{p.brand} · {p.name}</p>
@@ -153,9 +172,10 @@ export function DatabaseView({ onBack }: { onBack: () => void }) {
             </p>
             {p.note && <p className="text-xs text-slate-400">{p.note}</p>}
             <SourceLink url={p.sourceUrl} source={p.source} checkedAt={p.checkedAt} />
+            <ReportLink what={`${p.brand} ${p.name}`} />
           </li>
         ))}
-        {tab === 'farmaci' && drugs.map((d) => (
+        {(tab === 'farmaci' || (tab === 'tutto' && term)) && (tab === 'tutto' ? drugs.slice(0, ALL_LIMIT) : drugs).map((d) => (
           <li key={d.key} className="p-5 bg-white border border-slate-100 rounded-[2rem] shadow-sm space-y-2">
             <div className="flex items-start justify-between gap-3">
               <p className="font-bold text-slate-800">{d.name}</p>
@@ -168,8 +188,22 @@ export function DatabaseView({ onBack }: { onBack: () => void }) {
             {d.lactoseFreeAlternative && <p className="text-xs text-slate-500">Alternativa documentata: {d.lactoseFreeAlternative}</p>}
             <p className="text-xs text-slate-400">La formulazione varia tra produttori e nel tempo: controlla il foglietto. Non modificare la terapia senza sentire medico o farmacista.</p>
             <SourceLink url={d.sourceUrl} source={d.source} checkedAt={d.checkedAt} />
+            <ReportLink what={d.name} />
           </li>
         ))}
+        {tab === 'tutto' && term && allFast.map(({ chain: cn2, item: i }) => {
+          const st = fastStatus(i);
+          return (
+            <li key={`${cn2}-${i.k}`} className="p-4 bg-white border border-slate-100 rounded-[2rem] shadow-sm space-y-1.5">
+              <div className="flex items-start justify-between gap-3">
+                <p className="font-bold text-slate-800 break-words min-w-0">{i.n}</p>
+                <span className={cn('px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0 text-right', st.cls)}>{st.label}</span>
+              </div>
+              <p className="text-[11px] text-slate-400 font-medium">{cn2} · {i.c}{i.x ? ` · ${i.x}` : ''}</p>
+              <ReportLink what={`${cn2} – ${i.n}`} />
+            </li>
+          );
+        })}
         {tab === 'fastfood' && fast.slice(0, shown).map((i) => {
           const st = fastStatus(i);
           return (
@@ -179,11 +213,18 @@ export function DatabaseView({ onBack }: { onBack: () => void }) {
                 <span className={cn('px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0 text-right', st.cls)}>{st.label}</span>
               </div>
               <p className="text-[11px] text-slate-400 font-medium">{i.c}{i.x ? ` · ${i.x}` : ''}</p>
+              <ReportLink what={`${chain?.name ?? ''} – ${i.n}`} />
             </li>
           );
         })}
         {tab === 'fastfood' && fast.length > shown && (
           <li><button type="button" onClick={() => setShown((n) => n + PAGE)} className="w-full py-4 bg-slate-100 rounded-2xl font-black text-slate-600">Mostra altri ({fast.length - shown})</button></li>
+        )}
+        {tab === 'tutto' && !term && (
+          <li className="p-5 text-sm text-slate-500 font-medium">Scrivi sopra per cercare in tutta la banca dati: prodotti, farmaci e menu dei fast food insieme. Per gli alimenti e i piatti usa la ricerca della schermata principale.</li>
+        )}
+        {tab === 'tutto' && term && products.length + drugs.length + allFast.length === 0 && (
+          <li className="p-5 text-sm text-slate-400 font-medium">Nessun risultato. Prova con un altro termine.</li>
         )}
         {((tab === 'fastfood' && fast.length === 0) || (tab === 'prodotti' && products.length === 0) || (tab === 'farmaci' && drugs.length === 0)) && (
           <li className="p-5 text-sm text-slate-400 font-medium">Nessun risultato. Prova con un altro termine.</li>
