@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { History, Settings as SettingsIcon, HelpCircle, X } from 'lucide-react';
 import { AvatarLogo } from './components/AvatarLogo';
@@ -22,6 +22,7 @@ import { DiaryView } from './views/DiaryView';
 import { DishView } from './views/DishView';
 import { ExperiencesView } from './views/ExperiencesView';
 import { FaqView } from './views/FaqView';
+const DatabaseView = lazy(() => import('./views/DatabaseView').then((m) => ({ default: m.DatabaseView })));
 import { HistoryView } from './views/HistoryView';
 import { LabelView } from './views/LabelView';
 import { LactoseFreeView } from './views/LactoseFreeView';
@@ -358,6 +359,11 @@ export default function App() {
             />
           )}
           {view === 'faq' && <FaqView key="faq" onBack={goMain} />}
+          {view === 'database' && (
+            <Suspense key="database" fallback={<p className="text-sm text-slate-400 font-medium">Caricamento…</p>}>
+              <DatabaseView onBack={() => setView('more')} />
+            </Suspense>
+          )}
           {view === 'more' && <MoreView key="more" onOpen={setView} />}
           {view === 'terms' && <TermsView key="terms" onBack={() => setView('more')} />}
         </AnimatePresence>

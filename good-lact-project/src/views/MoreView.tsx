@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { ChevronRight, FileText, HelpCircle, History, Settings, ShieldCheck, ThumbsUp } from 'lucide-react';
+import { ChevronRight, Database, FileText, HelpCircle, History, Settings, ShieldCheck, ThumbsUp } from 'lucide-react';
 import { InstallButton } from '../components/InstallButton';
 import type { ReactNode } from 'react';
 import type { NavView } from './navigation';
@@ -9,6 +9,7 @@ const ITEMS: { view: NavView; label: string; hint: string; icon: ReactNode }[] =
   { view: 'report', label: 'Report medico', hint: 'Ultimi 30 giorni, da stampare o salvare in PDF', icon: <FileText size={22} /> },
   { view: 'history', label: 'Storico', hint: 'Compresse prese oggi e negli ultimi giorni', icon: <History size={22} /> },
   { view: 'settings', label: 'Profilo e account', hint: 'Lattasi, sensibilità, sincronizzazione, backup', icon: <Settings size={22} /> },
+  { view: 'database', label: 'Banca dati', hint: 'Prodotti e farmaci, anche senza rete', icon: <Database size={22} /> },
   { view: 'faq', label: 'FAQ e guide', hint: 'Etichette, farmaci, mangiare fuori', icon: <HelpCircle size={22} /> },
   { view: 'terms', label: 'Termini e privacy', hint: 'Come usiamo i tuoi dati', icon: <ShieldCheck size={22} /> },
 ];

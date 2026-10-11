@@ -1,4 +1,4 @@
-import { ShieldCheck, FileText, Home, LayoutGrid, NotebookPen, ScanLine, Settings, ThumbsUp, UtensilsCrossed, History, HelpCircle } from 'lucide-react';
+import { Database, ShieldCheck, FileText, Home, LayoutGrid, NotebookPen, ScanLine, Settings, ThumbsUp, UtensilsCrossed, History, HelpCircle } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { InstallButton } from '../components/InstallButton';
 import { cn } from '../lib/cn';
@@ -23,6 +23,7 @@ const SIDEBAR: Item[] = [
   { view: 'report', label: 'Report medico', icon: <FileText size={20} /> },
   { view: 'history', label: 'Storico', icon: <History size={20} /> },
   { view: 'settings', label: 'Profilo', icon: <Settings size={20} /> },
+  { view: 'database', label: 'Banca dati', icon: <Database size={20} /> },
   { view: 'faq', label: 'FAQ e guide', icon: <HelpCircle size={20} /> },
   { view: 'terms', label: 'Termini e privacy', icon: <ShieldCheck size={20} /> },
 ];
