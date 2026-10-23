@@ -31,7 +31,7 @@ export function DiaryView({ entries, sensitivity, onApplySensitivity, onMarkBad,
       <BackButton label="Menu" onClick={onBack} />
       <div className="space-y-2">
         <h2 className="text-3xl font-black text-slate-800">Diario sintomi</h2>
-        <p className="text-sm text-slate-400 font-medium">
+        <p className="text-sm text-slate-600 font-medium">
           Circa un'ora e mezza dopo ogni assunzione ti chiedo come stai. Con qualche pasto registrato si vedono gli andamenti.
         </p>
       </div>
@@ -58,18 +58,18 @@ export function DiaryView({ entries, sensitivity, onApplySensitivity, onMarkBad,
       )}
 
       {list.length === 0 ? (
-        <p className="text-center py-10 text-slate-300 font-bold">Nessuna risposta registrata.</p>
+        <p className="text-center py-10 text-slate-600 font-bold">Nessuna risposta registrata.</p>
       ) : (
         <ul className="space-y-3">
           {list.map((e) => (
             <li key={e.id} className="p-5 bg-white border border-slate-100 rounded-[2rem] shadow-sm space-y-3">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-xs font-black text-slate-300 uppercase tracking-widest">
+                  <p className="text-xs font-black text-slate-600 uppercase tracking-widest">
                     {new Date(e.at).toLocaleString('it-IT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
                   </p>
                   <p className="font-bold text-slate-800 leading-tight">{e.foodNames.join(', ') || 'Pasto'}</p>
-                  <p className="text-xs text-slate-400 font-medium">{formatPills(e.pills)} {pillsLabel(e.pills)}</p>
+                  <p className="text-xs text-slate-600 font-medium">{formatPills(e.pills)} {pillsLabel(e.pills)}</p>
                 </div>
                 <span className={`px-3 py-1 rounded-full text-xs font-black shrink-0 ${TONE[e.severity]}`}>{SEVERITY_LABEL[e.severity]}</span>
               </div>
@@ -82,7 +82,7 @@ export function DiaryView({ entries, sensitivity, onApplySensitivity, onMarkBad,
                   ))}
                 </div>
               )}
-              <button type="button" aria-label="Elimina voce" onClick={() => onRemove(e.id)} className="text-slate-300 hover:text-red-500">
+              <button type="button" aria-label="Elimina voce" onClick={() => onRemove(e.id)} className="text-slate-600 hover:text-red-500">
                 <Trash2 size={16} />
               </button>
             </li>

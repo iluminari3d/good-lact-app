@@ -55,3 +55,10 @@ body {
   .milk-wave-a,
   .milk-wave-b { animation: none; }
 }
+
+/* Segnaposto leggibile (contrasto almeno 4,5:1 su bianco) */
+input::placeholder,
+textarea::placeholder {
+  color: #64748b;
+  opacity: 1;
+}

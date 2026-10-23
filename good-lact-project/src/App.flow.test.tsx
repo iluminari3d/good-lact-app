@@ -243,7 +243,10 @@ describe('termini e privacy', () => {
     const dialog = await screen.findByRole('dialog');
     expect(within(dialog).getByText('Prima di iniziare')).toBeTruthy();
     expect(within(dialog).getByText('Dati relativi alla salute e consenso')).toBeTruthy();
-    await user.click(within(dialog).getByRole('button', { name: /ho letto e accetto/i }));
+    const accept = within(dialog).getByRole('button', { name: /ho letto e accetto/i }) as HTMLButtonElement;
+    expect(accept.disabled).toBe(true);
+    await user.click(within(dialog).getByRole('checkbox', { name: /dati sulla salute/i }));
+    await user.click(accept);
     expect(screen.queryByRole('dialog')).toBeNull();
     expect(JSON.parse(window.localStorage.getItem('goodlact_terms') ?? '{}').version).toBe(TERMS_VERSION);
 

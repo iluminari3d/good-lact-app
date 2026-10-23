@@ -38,7 +38,7 @@ const VERDICT_UI: Record<LabelVerdict, { title: string; Icon: LucideIcon; box: s
     title: 'Etichetta non leggibile',
     Icon: CircleHelp,
     box: 'bg-slate-100 border-slate-300',
-    icon: 'text-slate-500',
+    icon: 'text-slate-600',
     text: 'text-slate-800',
   },
 };
@@ -133,7 +133,7 @@ export function LabelView({ onBack }: Props) {
 
       <div className="space-y-2">
         <h2 className="text-3xl font-black text-slate-800">Scanner etichette</h2>
-        <p className="text-sm text-slate-500 font-medium">
+        <p className="text-sm text-slate-600 font-medium">
           Fotografa l'elenco degli ingredienti di un prodotto confezionato: cerco latte e derivati, anche tra gli allergeni.
         </p>
       </div>
@@ -213,7 +213,7 @@ export function LabelView({ onBack }: Props) {
 
       <div className="glass-card p-6 space-y-4">
         <h3 className="text-lg font-black text-slate-800 flex items-center gap-2"><Barcode size={20} className="text-primary" /> Cerca con il codice a barre</h3>
-        <p className="text-xs text-slate-500 font-medium">
+        <p className="text-xs text-slate-600 font-medium">
           Scrivi le cifre sotto il codice a barre. I dati vengono da Open Food Facts, un archivio collaborativo: possono essere
           vecchi o incompleti. Controlla sempre l'etichetta.
         </p>
@@ -249,8 +249,8 @@ export function LabelView({ onBack }: Props) {
                 <p className="text-sm font-medium text-slate-600">Latte non segnalato nella scheda. Non è una garanzia: verifica l'etichetta.</p>
               )}
               {barcodeResult.incomplete && <p className="text-sm font-semibold text-amber-700">Scheda incompleta: mancano ingredienti e allergeni. Non posso dirti nulla.</p>}
-              {barcodeResult.ingredients && <p className="text-xs text-slate-500 font-medium">Ingredienti: {barcodeResult.ingredients}</p>}
-              <p className="text-[11px] text-slate-400 font-medium">Fonte: Open Food Facts (collaborativo, non verificato) · codice {barcodeResult.code}</p>
+              {barcodeResult.ingredients && <p className="text-xs text-slate-600 font-medium">Ingredienti: {barcodeResult.ingredients}</p>}
+              <p className="text-xs text-slate-600 font-medium">Fonte: Open Food Facts (collaborativo, non verificato) · codice {barcodeResult.code}</p>
             </div>
           )}
         </div>
@@ -283,14 +283,14 @@ export function LabelView({ onBack }: Props) {
 
             {result.dairyIngredients.length > 0 && (
               <div className="p-5 bg-white border border-slate-200 rounded-3xl space-y-3">
-                <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                <h4 className="text-xs font-black text-slate-600 uppercase tracking-widest">
                   Latte e derivati trovati ({result.dairyIngredients.length})
                 </h4>
                 <ul className="space-y-2">
                   {result.dairyIngredients.map((d, i) => (
                     <li key={`${d.term}-${i}`} className="flex flex-col">
                       <span className="font-bold text-slate-800">{d.term}</span>
-                      {d.note && <span className="text-xs text-slate-500 font-medium">{d.note}</span>}
+                      {d.note && <span className="text-xs text-slate-600 font-medium">{d.note}</span>}
                     </li>
                   ))}
                 </ul>
@@ -303,7 +303,7 @@ export function LabelView({ onBack }: Props) {
               </p>
             )}
 
-            {result.summary && <p className="text-xs text-slate-500 font-medium px-2">Letto: {result.summary}</p>}
+            {result.summary && <p className="text-xs text-slate-600 font-medium px-2">Letto: {result.summary}</p>}
 
             <button
               type="button"
@@ -316,7 +316,7 @@ export function LabelView({ onBack }: Props) {
         )}
       </div>
 
-      <p className="text-xs text-slate-500 font-medium px-2">
+      <p className="text-xs text-slate-600 font-medium px-2">
         La lettura è automatica e può sbagliare: non sostituisce il controllo dell'etichetta. È un aiuto pratico, non un
         parere medico.
       </p>

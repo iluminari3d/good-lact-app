@@ -25,9 +25,9 @@ export function MoreView({ onOpen }: { onOpen: (view: NavView) => void }) {
               <span className="text-primary shrink-0">{i.icon}</span>
               <span className="min-w-0 flex-1">
                 <span className="block font-black text-slate-800">{i.label}</span>
-                <span className="block text-xs text-slate-400 font-medium">{i.hint}</span>
+                <span className="block text-xs text-slate-600 font-medium">{i.hint}</span>
               </span>
-              <ChevronRight size={18} className="text-slate-300 shrink-0" />
+              <ChevronRight size={18} className="text-slate-600 shrink-0" />
             </button>
           </li>
         ))}

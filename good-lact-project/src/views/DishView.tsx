@@ -68,13 +68,13 @@ export function DishView({ dish, isNew, severe, onChange, onConfirm, onCancel }:
 
       <div className="space-y-2">
         <h2 className="text-3xl font-black text-slate-800">{isNew ? 'Controlla il piatto' : 'Modifica il piatto'}</h2>
-        <p className="text-sm text-slate-400 font-medium">
+        <p className="text-sm text-slate-600 font-medium">
           Gli ingredienti sono stime: correggi i grammi o escludi quelli che sai non esserci.
         </p>
       </div>
 
       <div className="space-y-2">
-        <label htmlFor="dish-name" className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nome del piatto</label>
+        <label htmlFor="dish-name" className="text-xs font-black text-slate-600 uppercase tracking-widest">Nome del piatto</label>
         <input
           id="dish-name"
           type="text"
@@ -83,7 +83,7 @@ export function DishView({ dish, isNew, severe, onChange, onConfirm, onCancel }:
           onChange={(e) => onChange({ ...dish, name: e.target.value })}
           className="w-full p-5 bg-slate-50 rounded-3xl outline-none font-bold text-slate-700 shadow-inner"
         />
-        {dish.portionNote && <p className="text-xs text-slate-400 font-medium px-2">{dish.portionNote}</p>}
+        {dish.portionNote && <p className="text-xs text-slate-600 font-medium px-2">{dish.portionNote}</p>}
       </div>
 
       {!hasIngredients && (
@@ -115,14 +115,14 @@ export function DishView({ dish, isNew, severe, onChange, onConfirm, onCancel }:
                   />
                   <span className="flex flex-col min-w-0">
                     <span className={cn('font-bold text-slate-800', !ing.active && 'line-through')}>{ing.name}</span>
-                    {ing.reason && <span className="text-xs text-slate-400 font-medium">{ing.reason}</span>}
+                    {ing.reason && <span className="text-xs text-slate-600 font-medium">{ing.reason}</span>}
                   </span>
                 </label>
                 <button
                   type="button"
                   aria-label={`Rimuovi ${ing.name}`}
                   onClick={() => onChange({ ...dish, ingredients: dish.ingredients.filter((i) => i.id !== ing.id) })}
-                  className="p-2 text-slate-300 hover:text-red-500 rounded-xl shrink-0"
+                  className="p-2 text-slate-600 hover:text-red-500 rounded-xl shrink-0"
                 >
                   <Trash2 size={16} />
                 </button>
@@ -136,7 +136,7 @@ export function DishView({ dish, isNew, severe, onChange, onConfirm, onCancel }:
                       aria-label={`Quanto sei sicuro che ci sia ${ing.name}`}
                       value={ing.certainty}
                       onChange={(e) => update(ing.id, { certainty: e.target.value as Certainty })}
-                      className="text-[11px] font-bold text-slate-500 bg-transparent outline-none cursor-pointer"
+                      className="text-xs font-bold text-slate-600 bg-transparent outline-none cursor-pointer"
                     >
                       <option value="certain">Sì, c'è</option>
                       <option value="probable">Probabile</option>
@@ -144,7 +144,7 @@ export function DishView({ dish, isNew, severe, onChange, onConfirm, onCancel }:
                     </select>
                   </label>
                 ) : (
-                  <span className="px-2 py-0.5 rounded-full border bg-primary/5 text-primary border-primary/20 text-[10px] font-black uppercase tracking-wider">Aggiunto da te</span>
+                  <span className="px-2 py-0.5 rounded-full border bg-primary/5 text-primary border-primary/20 text-xs font-black uppercase tracking-wider">Aggiunto da te</span>
                 )}
                 <div className="flex items-center gap-2 ml-auto">
                   <input
@@ -157,9 +157,9 @@ export function DishView({ dish, isNew, severe, onChange, onConfirm, onCancel }:
                     onChange={(e) => update(ing.id, { grams: Math.min(2000, Math.max(0, Number(e.target.value))) })}
                     className="w-20 p-2 bg-slate-50 border-2 border-transparent focus:border-primary/20 rounded-xl text-sm font-bold outline-none text-center"
                   />
-                  <span className="text-xs font-bold text-slate-400">g</span>
+                  <span className="text-xs font-bold text-slate-600">g</span>
                 </div>
-                <span className="text-xs font-black text-slate-500 w-full text-right">
+                <span className="text-xs font-black text-slate-600 w-full text-right">
                   {negligible ? 'valore trascurabile (conta 0)' : `≈ ${formatGrams(lactose)} g di lattosio`}
                 </span>
               </div>
@@ -169,9 +169,9 @@ export function DishView({ dish, isNew, severe, onChange, onConfirm, onCancel }:
       </div>
 
       <div className="space-y-2 relative">
-        <label htmlFor="ingredient-search" className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Aggiungi un ingrediente</label>
+        <label htmlFor="ingredient-search" className="text-xs font-black text-slate-600 uppercase tracking-widest">Aggiungi un ingrediente</label>
         <div className="relative group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary" size={18} />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-primary" size={18} />
           <input
             id="ingredient-search"
             type="text"
@@ -188,7 +188,7 @@ export function DishView({ dish, isNew, severe, onChange, onConfirm, onCancel }:
               <button key={key} type="button" onClick={() => addIngredient(key)} className="w-full text-left p-3 hover:bg-primary/5 rounded-xl flex items-center justify-between">
                 <span className="flex flex-col">
                   <span className="text-sm font-bold text-slate-700">{f.name}</span>
-                  {f.category && <span className="text-[9px] text-slate-400 uppercase font-black">{f.category}</span>}
+                  {f.category && <span className="text-xs text-slate-600 uppercase font-black">{f.category}</span>}
                 </span>
                 <Plus size={14} className="text-primary" />
               </button>

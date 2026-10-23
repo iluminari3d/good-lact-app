@@ -72,7 +72,7 @@ export function SettingsView({
         <div className="p-8 bg-slate-50 rounded-[3rem] space-y-4">
           <div className="space-y-1">
             <label htmlFor="profile-lactase" className="text-sm font-black text-slate-800">Lattasi predefinita</label>
-            <p className="text-xs text-slate-400">Viene scelta in automatico a ogni pasto.</p>
+            <p className="text-xs text-slate-600">Viene scelta in automatico a ogni pasto.</p>
           </div>
           <select
             id="profile-lactase"
@@ -100,7 +100,7 @@ export function SettingsView({
         <div className="p-8 bg-slate-50 rounded-[3rem] space-y-4">
           <div className="space-y-1">
             <p id="text-scale-label" className="text-sm font-black text-slate-800">Dimensione del testo</p>
-            <p className="text-xs text-slate-400">L'app non si ingrandisce con il pizzico: scegli qui quanto leggere grande.</p>
+            <p className="text-xs text-slate-600">L'app non si ingrandisce con il pizzico: scegli qui quanto leggere grande.</p>
           </div>
           <div role="radiogroup" aria-labelledby="text-scale-label" className="grid grid-cols-3 gap-2">
             {(Object.keys(TEXT_SCALE_LABEL) as TextScale[]).map((k) => (
@@ -120,7 +120,7 @@ export function SettingsView({
         <div className="p-8 bg-slate-50 rounded-[3rem] flex items-center justify-between gap-4">
           <div className="space-y-1">
             <p className="text-sm font-black text-slate-800">Intolleranza severa</p>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-600">
               Per chi reagisce anche a piccole quantità: conta anche le tracce, include gli ingredienti solo
               possibili e propone sempre la dose prudente.
             </p>
@@ -140,7 +140,7 @@ export function SettingsView({
           <div className="flex justify-between items-center">
             <div className="space-y-1">
               <label htmlFor="sensitivity" className="text-sm font-black text-slate-800">Fattore di sensibilità</label>
-              <p className="text-xs text-slate-400">Moltiplica gli FCC calcolati in base a come reagisci tu</p>
+              <p className="text-xs text-slate-600">Moltiplica gli FCC calcolati in base a come reagisci tu</p>
             </div>
             <span className="text-2xl font-black text-primary">{sensitivity.toFixed(1).replace('.', ',')}x</span>
           </div>
@@ -154,7 +154,7 @@ export function SettingsView({
             onChange={(e) => onSensitivityChange(Number(e.target.value))}
             className="w-full accent-primary h-2 bg-slate-200 rounded-full appearance-none cursor-pointer"
           />
-          <div className="flex justify-between text-[10px] font-black text-slate-300 uppercase tracking-widest">
+          <div className="flex justify-between text-xs font-black text-slate-600 uppercase tracking-widest">
             <span>Poco sensibile (0,5x)</span>
             <span>Molto sensibile (2,0x)</span>
           </div>
@@ -162,7 +162,7 @@ export function SettingsView({
         <div className="p-8 bg-slate-50 rounded-[3rem] flex items-center justify-between gap-4">
           <div className="space-y-1">
             <p className="text-sm font-black text-slate-800">Notifiche di copertura</p>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-600">
               {supported ? 'Avvisami quando il timer scade' : 'Non supportate da questo browser'}
             </p>
           </div>
@@ -182,7 +182,7 @@ export function SettingsView({
         <div className="p-8 bg-slate-50 rounded-[3rem] space-y-4">
           <div className="space-y-1">
             <p className="text-sm font-black text-slate-800">Backup dei dati</p>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-600">
               Una copia dei tuoi dati in un file, utile anche senza account. Senza accesso
               i dati restano solo su questo dispositivo.
             </p>
@@ -203,9 +203,9 @@ export function SettingsView({
             className="hidden"
             onChange={(e) => { void importData(e.target.files?.[0]); e.target.value = ''; }}
           />
-          {backupMessage && <p role="status" className="text-xs font-semibold text-slate-500">{backupMessage}</p>}
+          {backupMessage && <p role="status" className="text-xs font-semibold text-slate-600">{backupMessage}</p>}
           {!confirmClear ? (
-            <button type="button" onClick={() => setConfirmClear(true)} className="text-xs font-black text-slate-400 uppercase tracking-widest hover:text-red-500 flex items-center gap-2">
+            <button type="button" onClick={() => setConfirmClear(true)} className="text-xs font-black text-slate-600 uppercase tracking-widest hover:text-red-500 flex items-center gap-2">
               <Trash2 size={14} /> Cancella i dati di questo dispositivo
             </button>
           ) : (

@@ -15,9 +15,9 @@ interface Props {
 function Group({ title, tone, items, onRemove }: { title: string; tone: string; items: Experience[]; onRemove: (id: string) => void }) {
   return (
     <section className="space-y-3" aria-label={title}>
-      <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">{title}</h3>
+      <h3 className="text-xs font-black text-slate-600 uppercase tracking-widest">{title}</h3>
       {items.length === 0 ? (
-        <p className="text-sm text-slate-300 font-medium">Ancora niente.</p>
+        <p className="text-sm text-slate-600 font-medium">Ancora niente.</p>
       ) : (
         <ul className="flex flex-wrap gap-2">
           {items.map((e) => (
@@ -48,14 +48,14 @@ export function ExperiencesView({ experiences, onAdd, onRemove, onBack }: Props)
       <BackButton label="Menu" onClick={onBack} />
       <div className="space-y-2">
         <h2 className="text-3xl font-black text-slate-800">Le mie esperienze</h2>
-        <p className="text-sm text-slate-400 font-medium">
+        <p className="text-sm text-slate-600 font-medium">
           Segna cosa ti va bene e cosa ti dà fastidio. Quando un piatto contiene qualcosa che hai segnato,
           lo vedrai nel risultato. La dose non viene abbassata in automatico: decidi sempre tu.
         </p>
       </div>
 
       <div className="p-6 bg-slate-50 rounded-[2.5rem] space-y-4">
-        <label htmlFor="exp-name" className="text-xs font-black text-slate-400 uppercase tracking-widest">Alimento o ingrediente</label>
+        <label htmlFor="exp-name" className="text-xs font-black text-slate-600 uppercase tracking-widest">Alimento o ingrediente</label>
         <input
           id="exp-name"
           value={name}
@@ -77,7 +77,7 @@ export function ExperiencesView({ experiences, onAdd, onRemove, onBack }: Props)
 
       <Group title="Mi dà fastidio" tone="bg-red-50 text-red-700 border-red-200" items={experiences.filter((e) => e.verdict === 'bad')} onRemove={onRemove} />
       <Group title="Mi va bene" tone="bg-emerald-50 text-emerald-700 border-emerald-200" items={experiences.filter((e) => e.verdict === 'ok')} onRemove={onRemove} />
-      <p className="text-[11px] text-slate-300 font-medium">
+      <p className="text-xs text-slate-600 font-medium">
         Restano sul tuo dispositivo. "Mi va bene" è solo un promemoria: contaminazioni e ricette diverse possono cambiare l'esito.
       </p>
     </motion.div>

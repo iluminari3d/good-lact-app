@@ -7,7 +7,7 @@ export function BackButton({ label, onClick }: { label: string; onClick: () => v
   return (
     <button
       onClick={onClick}
-      className="flex items-center gap-2 text-slate-400 hover:text-primary transition-all text-xs font-black uppercase tracking-widest"
+      className="flex items-center gap-2 text-slate-600 hover:text-primary transition-all text-xs font-black uppercase tracking-widest"
     >
       <ChevronLeft size={16} /> {label}
     </button>
@@ -17,13 +17,13 @@ export function BackButton({ label, onClick }: { label: string; onClick: () => v
 const CERTAINTY_STYLE: Record<Certainty, { label: string; className: string }> = {
   certain: { label: 'Certo', className: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
   probable: { label: 'Probabile', className: 'bg-amber-50 text-amber-700 border-amber-200' },
-  possible: { label: 'Possibile', className: 'bg-slate-50 text-slate-500 border-slate-200' },
+  possible: { label: 'Possibile', className: 'bg-slate-50 text-slate-600 border-slate-200' },
 };
 
 export function CertaintyBadge({ certainty }: { certainty: Certainty }) {
   const style = CERTAINTY_STYLE[certainty];
   return (
-    <span className={cn('px-2 py-0.5 rounded-full border text-[10px] font-black uppercase tracking-wider', style.className)}>
+    <span className={cn('px-2 py-0.5 rounded-full border text-xs font-black uppercase tracking-wider', style.className)}>
       {style.label}
     </span>
   );
@@ -73,8 +73,8 @@ export function DataStatusNotice() {
   if (REFERENCE_DATA_VERIFIED) return null;
   return (
     <div className="p-5 bg-slate-50 border border-slate-100 rounded-3xl text-left flex gap-3">
-      <Info size={20} className="text-slate-400 shrink-0 mt-0.5" />
-      <p className="text-sm text-slate-500 font-medium">
+      <Info size={20} className="text-slate-600 shrink-0 mt-0.5" />
+      <p className="text-sm text-slate-600 font-medium">
         I valori di lattosio sono <strong>indicativi</strong>: non sono ancora verificati su fonti ufficiali.
         Anche il rapporto tra lattasi e lattosio è una <strong>stima prudenziale</strong> (1.000 FCC per grammo; le
         fonti vanno da circa 200 a 1.500 e nessuna è uno studio clinico). Per questo il calcolo applica margini di

@@ -23,7 +23,7 @@ export function TimerView({ timeLeft, totalSeconds, isRunning, canExtend, onStop
       <div className="text-left"><BackButton label="Menu" onClick={onBack} /></div>
       <div className="space-y-3">
         <h2 className="text-3xl font-black text-slate-800">{isRunning ? 'Sei protetto' : 'Copertura terminata'}</h2>
-        <p className="text-slate-400 font-medium">
+        <p className="text-slate-600 font-medium">
           {isRunning
             ? 'La lattasi sta lavorando: il latte scende mentre la copertura si consuma.'
             : "Se il pasto continua, valuta un'altra compressa."}
@@ -47,11 +47,11 @@ export function TimerView({ timeLeft, totalSeconds, isRunning, canExtend, onStop
           <button type="button" onClick={onTakeAnother} className="w-full py-5 bg-emerald-600 text-white font-black rounded-3xl shadow-lg hover:bg-emerald-700">
             Ho preso un'altra compressa
           </button>
-          <p className="text-xs text-slate-400 font-medium">Registra 1 compressa e riavvia i 40 minuti di copertura.</p>
+          <p className="text-xs text-slate-600 font-medium">Registra 1 compressa e riavvia i 40 minuti di copertura.</p>
         </div>
       )}
       {isRunning && (
-        <button type="button" onClick={onStop} className="w-full py-4 bg-slate-100 text-slate-500 font-black rounded-3xl hover:bg-slate-200">
+        <button type="button" onClick={onStop} className="w-full py-4 bg-slate-100 text-slate-600 font-black rounded-3xl hover:bg-slate-200">
           Interrompi la copertura
         </button>
       )}

@@ -46,7 +46,7 @@ export function InstallButton() {
       <button type="button" onClick={() => void click()} className="w-full p-5 bg-primary/10 text-primary rounded-[2rem] flex items-center justify-center gap-3 font-black">
         <Download size={20} /> Installa l'app sul telefono
       </button>
-      {hint && <p className="text-xs text-slate-400 font-medium px-2">Su iPhone: tocca Condividi in Safari, poi «Aggiungi alla schermata Home».</p>}
+      {hint && <p className="text-xs text-slate-600 font-medium px-2">Su iPhone: tocca Condividi in Safari, poi «Aggiungi alla schermata Home».</p>}
     </div>
   );
 }

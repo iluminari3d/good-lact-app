@@ -4,7 +4,7 @@ import { load, save } from './storage';
  * Versione dei termini e dell'informativa. Quando il testo cambia in modo sostanziale
  * si aggiorna questa data: tutti dovranno accettare di nuovo al prossimo avvio.
  */
-export const TERMS_VERSION = '2026-10-11b';
+export const TERMS_VERSION = '2026-10-23';
 
 export interface Consent {
   version: string;

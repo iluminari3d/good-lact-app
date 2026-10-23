@@ -16,7 +16,7 @@ export function FaqView({ onBack }: { onBack: () => void }) {
               {cat.items.map((item) => (
                 <div key={item.q} className="p-6 bg-white border border-slate-100 rounded-[2rem] shadow-sm">
                   <p className="font-bold text-slate-800 mb-3">{item.q}</p>
-                  <p className="text-sm text-slate-500 leading-relaxed whitespace-pre-wrap">{item.a}</p>
+                  <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">{item.a}</p>
                 </div>
               ))}
             </div>

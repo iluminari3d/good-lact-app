@@ -34,7 +34,7 @@ function ReportLink({ what }: { what: string }) {
   const subject = encodeURIComponent(`Good Lact – segnalazione dato: ${what}`);
   const body = encodeURIComponent(`Voce: ${what}\n\nCosa non torna (e, se puoi, dove l'hai verificato):\n`);
   return (
-    <a href={`mailto:info@iluminari3d.com?subject=${subject}&body=${body}`} className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-400 hover:text-primary">
+    <a href={`mailto:info@iluminari3d.com?subject=${subject}&body=${body}`} className="inline-flex items-center gap-1 text-xs font-bold text-slate-600 hover:text-primary">
       <Flag size={11} /> Segnala un errore
     </a>
   );
@@ -43,7 +43,7 @@ function ReportLink({ what }: { what: string }) {
 /** Mai "senza latte": una cella vuota in scheda vuol dire solo "non segnalato". */
 function fastStatus(i: FastItem): { label: string; cls: string } {
   if (i.m === 1) return { label: 'Contiene latte', cls: 'bg-red-50 text-red-700' };
-  if (i.m === null) return { label: 'Da verificare', cls: 'bg-slate-100 text-slate-500' };
+  if (i.m === null) return { label: 'Da verificare', cls: 'bg-slate-100 text-slate-600' };
   if (i.t === 1) return { label: 'Tracce possibili', cls: 'bg-amber-50 text-amber-700' };
   return { label: 'Latte non segnalato in scheda', cls: 'bg-emerald-50 text-emerald-700' };
 }
@@ -51,7 +51,7 @@ function fastStatus(i: FastItem): { label: string; cls: string } {
 const RELIABILITY: Record<Reliability, { label: string; cls: string }> = {
   measured: { label: 'Fonte ufficiale', cls: 'bg-emerald-50 text-emerald-700' },
   estimated: { label: 'Stimato', cls: 'bg-amber-50 text-amber-700' },
-  unverified: { label: 'Da verificare', cls: 'bg-slate-100 text-slate-500' },
+  unverified: { label: 'Da verificare', cls: 'bg-slate-100 text-slate-600' },
 };
 
 const CLAIMS: Record<string, string> = {
@@ -63,12 +63,12 @@ const CLAIMS: Record<string, string> = {
 
 function Badge({ r }: { r: Reliability }) {
   const b = RELIABILITY[r];
-  return <span className={cn('px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider', b.cls)}>{b.label}</span>;
+  return <span className={cn('px-2 py-0.5 rounded-full text-xs font-black uppercase tracking-wider', b.cls)}>{b.label}</span>;
 }
 
 function SourceLink({ url, source, checkedAt }: { url: string; source: string; checkedAt: string }) {
   return (
-    <p className="text-[11px] text-slate-400 font-medium flex flex-wrap items-center gap-1">
+    <p className="text-xs text-slate-600 font-medium flex flex-wrap items-center gap-1">
       Fonte: {source} · letto il {checkedAt}
       <a href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-primary font-bold">
         apri <ExternalLink size={11} />
@@ -106,7 +106,7 @@ export function DatabaseView({ onBack }: { onBack: () => void }) {
     <motion.div key="database" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-6">
       <BackButton label="Menu" onClick={onBack} />
       <h2 className="text-3xl font-black text-slate-800 flex items-center gap-3"><Database size={28} className="text-primary" /> Banca dati</h2>
-      <p className="text-sm text-slate-500 font-medium">
+      <p className="text-sm text-slate-600 font-medium">
         Funziona anche senza rete. I dati vengono da fonti pubbliche e i prodotti cambiano formulazione: controlla
         sempre l'etichetta o il foglietto illustrativo. Non è un parere medico.
       </p>
@@ -119,7 +119,7 @@ export function DatabaseView({ onBack }: { onBack: () => void }) {
             role="tab"
             aria-selected={tab === t}
             onClick={() => { setTab(t); setShown(PAGE); }}
-            className={cn('flex-1 py-3 rounded-2xl font-black text-xs sm:text-sm', tab === t ? 'bg-primary text-white' : 'bg-slate-100 text-slate-500')}
+            className={cn('flex-1 py-3 rounded-2xl font-black text-xs sm:text-sm', tab === t ? 'bg-primary text-white' : 'bg-slate-100 text-slate-600')}
           >
             {t === 'tutto' ? 'Tutto' : t === 'prodotti' ? `Prodotti (${PRODUCTS.length})` : t === 'farmaci' ? `Farmaci (${DRUGS.length})` : `Fast food (${FAST_TOTAL})`}
           </button>
@@ -127,7 +127,7 @@ export function DatabaseView({ onBack }: { onBack: () => void }) {
       </div>
 
       <label className="relative block">
-        <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+        <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" />
         <input
           value={query}
           onChange={(e) => { setQuery(e.target.value); setShown(PAGE); }}
@@ -147,7 +147,7 @@ export function DatabaseView({ onBack }: { onBack: () => void }) {
           >
             {CHAINS.map((c) => <option key={c.id} value={c.id}>{c.name} ({c.items.length})</option>)}
           </select>
-          <div className="p-4 bg-slate-50 rounded-2xl text-xs text-slate-500 font-medium space-y-1">
+          <div className="p-4 bg-slate-50 rounded-2xl text-xs text-slate-600 font-medium space-y-1">
             <p><strong>Scheda:</strong> {chain.docDate}</p>
             {chain.year != null && chain.year < 2025 && (
               <p className="font-bold text-amber-700">Scheda datata ({chain.year}): le ricette potrebbero essere cambiate.</p>
@@ -170,7 +170,7 @@ export function DatabaseView({ onBack }: { onBack: () => void }) {
               {CLAIMS[p.claim] ?? p.claim}
               {p.lactosePer100g != null && ` · lattosio fino a ${String(p.lactosePer100g).replace('.', ',')} g/100 g`}
             </p>
-            {p.note && <p className="text-xs text-slate-400">{p.note}</p>}
+            {p.note && <p className="text-xs text-slate-600">{p.note}</p>}
             <SourceLink url={p.sourceUrl} source={p.source} checkedAt={p.checkedAt} />
             <ReportLink what={`${p.brand} ${p.name}`} />
           </li>
@@ -185,8 +185,8 @@ export function DatabaseView({ onBack }: { onBack: () => void }) {
               {d.containsLactose === false ? 'Lattosio non presente tra gli eccipienti' : d.containsLactose ? 'Contiene lattosio' : 'Lattosio: da verificare'}
               {d.lactoseMgPerUnit != null && ` · circa ${String(d.lactoseMgPerUnit).replace('.', ',')} mg per ${d.form}`}
             </p>
-            {d.lactoseFreeAlternative && <p className="text-xs text-slate-500">Alternativa documentata: {d.lactoseFreeAlternative}</p>}
-            <p className="text-xs text-slate-400">La formulazione varia tra produttori e nel tempo: controlla il foglietto. Non modificare la terapia senza sentire medico o farmacista.</p>
+            {d.lactoseFreeAlternative && <p className="text-xs text-slate-600">Alternativa documentata: {d.lactoseFreeAlternative}</p>}
+            <p className="text-xs text-slate-600">La formulazione varia tra produttori e nel tempo: controlla il foglietto. Non modificare la terapia senza sentire medico o farmacista.</p>
             <SourceLink url={d.sourceUrl} source={d.source} checkedAt={d.checkedAt} />
             <ReportLink what={d.name} />
           </li>
@@ -197,9 +197,9 @@ export function DatabaseView({ onBack }: { onBack: () => void }) {
             <li key={`${cn2}-${i.k}`} className="p-4 bg-white border border-slate-100 rounded-[2rem] shadow-sm space-y-1.5">
               <div className="flex items-start justify-between gap-3">
                 <p className="font-bold text-slate-800 break-words min-w-0">{i.n}</p>
-                <span className={cn('px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0 text-right', st.cls)}>{st.label}</span>
+                <span className={cn('px-2 py-0.5 rounded-full text-xs font-black uppercase tracking-wider shrink-0 text-right', st.cls)}>{st.label}</span>
               </div>
-              <p className="text-[11px] text-slate-400 font-medium">{cn2} · {i.c}{i.x ? ` · ${i.x}` : ''}</p>
+              <p className="text-xs text-slate-600 font-medium">{cn2} · {i.c}{i.x ? ` · ${i.x}` : ''}</p>
               <ReportLink what={`${cn2} – ${i.n}`} />
             </li>
           );
@@ -210,9 +210,9 @@ export function DatabaseView({ onBack }: { onBack: () => void }) {
             <li key={i.k} className="p-4 bg-white border border-slate-100 rounded-[2rem] shadow-sm space-y-1.5">
               <div className="flex items-start justify-between gap-3">
                 <p className="font-bold text-slate-800 break-words min-w-0">{i.n}</p>
-                <span className={cn('px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0 text-right', st.cls)}>{st.label}</span>
+                <span className={cn('px-2 py-0.5 rounded-full text-xs font-black uppercase tracking-wider shrink-0 text-right', st.cls)}>{st.label}</span>
               </div>
-              <p className="text-[11px] text-slate-400 font-medium">{i.c}{i.x ? ` · ${i.x}` : ''}</p>
+              <p className="text-xs text-slate-600 font-medium">{i.c}{i.x ? ` · ${i.x}` : ''}</p>
               <ReportLink what={`${chain?.name ?? ''} – ${i.n}`} />
             </li>
           );
@@ -221,13 +221,13 @@ export function DatabaseView({ onBack }: { onBack: () => void }) {
           <li><button type="button" onClick={() => setShown((n) => n + PAGE)} className="w-full py-4 bg-slate-100 rounded-2xl font-black text-slate-600">Mostra altri ({fast.length - shown})</button></li>
         )}
         {tab === 'tutto' && !term && (
-          <li className="p-5 text-sm text-slate-500 font-medium">Scrivi sopra per cercare in tutta la banca dati: prodotti, farmaci e menu dei fast food insieme. Per gli alimenti e i piatti usa la ricerca della schermata principale.</li>
+          <li className="p-5 text-sm text-slate-600 font-medium">Scrivi sopra per cercare in tutta la banca dati: prodotti, farmaci e menu dei fast food insieme. Per gli alimenti e i piatti usa la ricerca della schermata principale.</li>
         )}
         {tab === 'tutto' && term && products.length + drugs.length + allFast.length === 0 && (
-          <li className="p-5 text-sm text-slate-400 font-medium">Nessun risultato. Prova con un altro termine.</li>
+          <li className="p-5 text-sm text-slate-600 font-medium">Nessun risultato. Prova con un altro termine.</li>
         )}
         {((tab === 'fastfood' && fast.length === 0) || (tab === 'prodotti' && products.length === 0) || (tab === 'farmaci' && drugs.length === 0)) && (
-          <li className="p-5 text-sm text-slate-400 font-medium">Nessun risultato. Prova con un altro termine.</li>
+          <li className="p-5 text-sm text-slate-600 font-medium">Nessun risultato. Prova con un altro termine.</li>
         )}
       </ul>
     </motion.div>
