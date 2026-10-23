@@ -13,13 +13,13 @@ export function AccountSection() {
     <section aria-label="Account e sincronizzazione" className="p-8 bg-slate-50 rounded-[3rem] space-y-4">
       <div className="space-y-1">
         <p className="text-sm font-black text-slate-800 flex items-center gap-2"><Cloud size={16} /> Account e sincronizzazione</p>
-        <p className="text-xs text-slate-400">
+        <p className="text-xs text-slate-600">
           Accedi per ritrovare profilo, esperienze e diario su tutti i tuoi dispositivi. Senza accesso l'app funziona
           come sempre, con i dati solo su questo telefono.
         </p>
       </div>
 
-      {sync.status === 'loading' && <p className="text-xs text-slate-400 font-medium">Controllo l'account…</p>}
+      {sync.status === 'loading' && <p className="text-xs text-slate-600 font-medium">Controllo l'account…</p>}
 
       {sync.status === 'signedOut' && (
         <div className="space-y-3">
@@ -27,7 +27,7 @@ export function AccountSection() {
             Accedi con Google
           </button>
           <div className="space-y-2">
-            <label htmlFor="account-email" className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Oppure ricevi un link via email</label>
+            <label htmlFor="account-email" className="text-xs font-black text-slate-600 uppercase tracking-widest">Oppure ricevi un link via email</label>
             <div className="flex gap-2">
               <input
                 id="account-email"
@@ -50,7 +50,7 @@ export function AccountSection() {
       {sync.status === 'signedIn' && (
         <div className="space-y-3">
           <p className="text-sm font-semibold text-slate-700 break-all">Collegato come {sync.email ?? 'utente'}</p>
-          <p className="text-xs text-slate-400 font-medium" role="status">
+          <p className="text-xs text-slate-600 font-medium" role="status">
             {sync.syncing
               ? 'Sincronizzazione in corso…'
               : sync.lastSync
@@ -66,7 +66,7 @@ export function AccountSection() {
             </button>
           </div>
           {!confirmDelete ? (
-            <button type="button" onClick={() => setConfirmDelete(true)} className="text-xs font-black text-slate-400 uppercase tracking-widest hover:text-red-500 flex items-center gap-2">
+            <button type="button" onClick={() => setConfirmDelete(true)} className="text-xs font-black text-slate-600 uppercase tracking-widest hover:text-red-500 flex items-center gap-2">
               <Trash2 size={14} /> Elimina account e dati nel cloud
             </button>
           ) : (
@@ -83,8 +83,8 @@ export function AccountSection() {
         </div>
       )}
 
-      {sync.message && <p role="status" className="text-xs font-semibold text-slate-500">{sync.message}</p>}
-      <p className="text-[11px] text-slate-300 font-medium">
+      {sync.message && <p role="status" className="text-xs font-semibold text-slate-600">{sync.message}</p>}
+      <p className="text-xs text-slate-600 font-medium">
         I dati sono salvati su Firebase (Google) e visibili solo al tuo account. Sono dati di salute: non vengono
         usati per pubblicità né condivisi.
       </p>

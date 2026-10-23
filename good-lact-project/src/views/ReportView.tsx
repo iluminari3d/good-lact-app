@@ -35,7 +35,7 @@ export function ReportView({ report, experiences, severe, sensitivity, lactaseNa
       <article className="space-y-6 text-slate-800">
         <header className="space-y-1">
           <h2 className="text-3xl font-black">Report degli ultimi 30 giorni</h2>
-          <p className="text-sm text-slate-500 font-medium">
+          <p className="text-sm text-slate-600 font-medium">
             Generato il {new Date().toLocaleDateString('it-IT')} da Good Lact. Sono dati inseriti dalla persona, non misure cliniche.
           </p>
         </header>
@@ -58,12 +58,12 @@ export function ReportView({ report, experiences, severe, sensitivity, lactaseNa
         )}
 
         {report.days.length === 0 ? (
-          <p className="text-center py-10 text-slate-300 font-bold">Nessun dato registrato negli ultimi 30 giorni.</p>
+          <p className="text-center py-10 text-slate-600 font-bold">Nessun dato registrato negli ultimi 30 giorni.</p>
         ) : (
           <div className="space-y-4">
             {report.days.map((d) => (
               <section key={d.date} className="space-y-2 break-inside-avoid border-t border-slate-100 pt-3">
-                <h3 className="font-black capitalize">{dateLabel(d.date)} <span className="text-slate-400 font-bold text-sm">· {formatPills(d.totalPills)} {pillsLabel(d.totalPills)}</span></h3>
+                <h3 className="font-black capitalize">{dateLabel(d.date)} <span className="text-slate-600 font-bold text-sm">· {formatPills(d.totalPills)} {pillsLabel(d.totalPills)}</span></h3>
                 <ul className="text-sm space-y-1">
                   {d.consumptions.map((c) => (
                     <li key={c.id}>{c.time} — {c.foodNames.join(', ')} ({formatPills(c.pills)} {pillsLabel(c.pills)})</li>

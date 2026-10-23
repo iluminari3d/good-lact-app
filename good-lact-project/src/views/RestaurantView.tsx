@@ -48,7 +48,7 @@ export function RestaurantView({ onBack }: Props) {
 
       <div className="space-y-2">
         <h2 className="text-3xl font-black text-slate-800">Al ristorante</h2>
-        <p className="text-sm text-slate-500 font-medium">
+        <p className="text-sm text-slate-600 font-medium">
           Frasi pronte da mostrare al personale e lettura del menu per capire cosa chiedere.
         </p>
       </div>
@@ -112,7 +112,7 @@ function PhrasesPanel() {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <label htmlFor="phrase-lang" className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+        <label htmlFor="phrase-lang" className="text-xs font-black text-slate-600 uppercase tracking-widest">
           Lingua da mostrare
         </label>
         <select
@@ -138,13 +138,13 @@ function PhrasesPanel() {
       <ul className="space-y-4">
         {PHRASES.map((phrase) => (
           <li key={phrase.id} className="glass-card p-6 space-y-4">
-            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+            <p className="text-xs font-black text-slate-600 uppercase tracking-widest">
               {CATEGORY_LABELS[phrase.category]} · {phrase.title}
             </p>
             <p lang={lang} className="text-2xl font-black text-slate-900 leading-snug">
               {phrase.text[lang]}
             </p>
-            {lang !== 'it' && <p className="text-xs text-slate-500 font-medium">{phrase.text.it}</p>}
+            {lang !== 'it' && <p className="text-xs text-slate-600 font-medium">{phrase.text.it}</p>}
             <div className="flex gap-3 flex-wrap">
               <button
                 type="button"
@@ -299,7 +299,7 @@ function MenuPanel() {
     <div className="space-y-6">
       <div className="glass-card p-6 space-y-5">
         <div className="space-y-2">
-          <label htmlFor="menu-text" className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+          <label htmlFor="menu-text" className="text-xs font-black text-slate-600 uppercase tracking-widest">
             Incolla il testo del menu
           </label>
           <textarea
@@ -311,7 +311,7 @@ function MenuPanel() {
             placeholder="Es. Risotto ai funghi, Tagliata con rucola, Tiramisù..."
             className="w-full p-4 bg-slate-50 rounded-3xl outline-none font-medium text-slate-700 shadow-inner resize-none"
           />
-          <p className="text-xs text-slate-500 text-right">
+          <p className="text-xs text-slate-600 text-right">
             {text.length}/{MAX_MENU_TEXT}
           </p>
         </div>
@@ -437,7 +437,7 @@ function MenuPanel() {
                         {dish.why && <p className={cn('text-sm font-medium', ui.text)}>{dish.why}</p>}
                         {dish.askStaff && (
                           <p className={cn('text-sm font-bold', ui.text)}>
-                            <span className="uppercase text-[10px] tracking-widest">Chiedi: </span>
+                            <span className="uppercase text-xs tracking-widest">Chiedi: </span>
                             {dish.askStaff}
                           </p>
                         )}
@@ -448,7 +448,7 @@ function MenuPanel() {
               );
             })}
 
-            <p className="text-xs text-slate-500 font-medium px-2">
+            <p className="text-xs text-slate-600 font-medium px-2">
               La classificazione è una stima automatica dai nomi dei piatti: è un aiuto pratico, non un parere medico.
             </p>
           </>

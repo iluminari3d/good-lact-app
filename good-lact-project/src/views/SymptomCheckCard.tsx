@@ -19,7 +19,7 @@ export function SymptomCheckCard({ consumption, onAnswer, onSkip }: Props) {
     <section aria-label="Come stai dopo il pasto" className="p-6 bg-sky-50 border border-sky-100 rounded-[2.5rem] space-y-4 print:hidden">
       <div className="space-y-1">
         <p className="text-sm font-black text-slate-800">Come è andata dopo il pasto delle {consumption.time}?</p>
-        <p className="text-xs text-slate-500 font-medium">{consumption.foodNames.join(', ')}</p>
+        <p className="text-xs text-slate-600 font-medium">{consumption.foodNames.join(', ')}</p>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         {OPTIONS.map((o) => (
@@ -28,7 +28,7 @@ export function SymptomCheckCard({ consumption, onAnswer, onSkip }: Props) {
           </button>
         ))}
       </div>
-      <button type="button" onClick={onSkip} className="text-xs font-black text-slate-400 uppercase tracking-widest hover:text-primary">
+      <button type="button" onClick={onSkip} className="text-xs font-black text-slate-600 uppercase tracking-widest hover:text-primary">
         Salta
       </button>
     </section>

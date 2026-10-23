@@ -223,13 +223,13 @@ export default function App() {
           <div className="flex items-center gap-4">
             <div className={cn('w-2.5 h-2.5 rounded-full', timer.isRunning ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-slate-300')} />
             <button type="button" onClick={() => setView('timer')} className="flex flex-col text-left">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] leading-none">Stato</span>
+              <span className="text-xs font-black text-slate-600 uppercase tracking-[0.15em] leading-none">Stato</span>
               <span className="text-xs font-bold text-slate-600 mt-1">
                 {timer.isRunning ? `Protetto (${formatTime(timer.timeLeft)})` : 'Non protetto'}
               </span>
             </button>
             {timer.isRunning && (
-              <button type="button" aria-label="Interrompi la copertura" onClick={timer.stop} className="p-1.5 text-slate-300 hover:text-red-500 transition-all">
+              <button type="button" aria-label="Interrompi la copertura" onClick={timer.stop} className="p-1.5 text-slate-600 hover:text-red-500 transition-all">
                 <X size={14} strokeWidth={3} />
               </button>
             )}
@@ -238,14 +238,14 @@ export default function App() {
           <div className="flex items-center gap-4">
             <button type="button" onClick={() => setView('history')} className="flex items-center gap-3 group" aria-label="Storico assunzioni">
               <span className="flex flex-col items-end">
-                <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest leading-none">Compresse oggi</span>
+                <span className="text-xs font-black text-slate-600 uppercase tracking-widest leading-none">Compresse oggi</span>
                 <span className="text-sm font-black text-primary mt-1">{log.dailyPills}</span>
               </span>
-              <span className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover:bg-primary/10 group-hover:text-primary transition-all">
+              <span className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-600 group-hover:bg-primary/10 group-hover:text-primary transition-all">
                 <History size={20} />
               </span>
             </button>
-            <button type="button" aria-label="Impostazioni" onClick={() => setView('settings')} className="p-2 text-slate-300 hover:text-primary transition-all">
+            <button type="button" aria-label="Impostazioni" onClick={() => setView('settings')} className="p-2 text-slate-600 hover:text-primary transition-all">
               <SettingsIcon size={20} />
             </button>
           </div>
@@ -258,7 +258,6 @@ export default function App() {
               <img src="/Good Lact Lungo.svg" alt="Good Lact" className="h-24 md:h-28 w-auto hover:scale-105 transition-transform duration-500" />
             </button>
           </motion.div>
-          <p className="text-slate-400 mt-2 font-medium">Il tuo compagno intelligente per l'intolleranza al lattosio</p>
         </div>
 
         {view === 'main' && pending && (
@@ -367,7 +366,7 @@ export default function App() {
           )}
           {view === 'faq' && <FaqView key="faq" onBack={goMain} />}
           {view === 'database' && (
-            <Suspense key="database" fallback={<p className="text-sm text-slate-400 font-medium">Caricamento…</p>}>
+            <Suspense key="database" fallback={<p className="text-sm text-slate-600 font-medium">Caricamento…</p>}>
               <DatabaseView onBack={() => setView('more')} />
             </Suspense>
           )}
@@ -376,13 +375,13 @@ export default function App() {
         </AnimatePresence>
 
         <div className="mt-12 pt-8 border-t border-slate-100 flex justify-between items-center relative z-10 print:hidden">
-          <button type="button" onClick={() => setView('faq')} className="text-slate-400 hover:text-primary transition-all flex items-center gap-3 text-xs font-black uppercase tracking-widest">
+          <button type="button" onClick={() => setView('faq')} className="text-slate-600 hover:text-primary transition-all flex items-center gap-3 text-xs font-black uppercase tracking-widest">
             <HelpCircle size={16} /> FAQ e guide
           </button>
           <div className="flex flex-col items-end gap-2">
-            <p className="text-[10px] text-slate-300 uppercase tracking-[0.2em] font-black">Good Lact v4.0</p>
-            <div className="flex items-center gap-2 text-slate-200/50">
-              <span className="text-[8px] font-bold uppercase tracking-wider">Powered by</span>
+            <p className="text-xs text-slate-600 uppercase tracking-[0.2em] font-black">Good Lact v4.0</p>
+            <div className="flex items-center gap-2 text-slate-500">
+              <span className="text-xs font-bold uppercase tracking-wider">Powered by</span>
               <AvatarLogo />
             </div>
           </div>

@@ -5,7 +5,7 @@ import { BackButton } from './ui';
 export function TermsText() {
   return (
     <div className="space-y-5 text-sm text-slate-600 font-medium leading-relaxed">
-      <p className="text-xs text-slate-400">Ultimo aggiornamento: {TERMS_UPDATED}</p>
+      <p className="text-xs text-slate-600">Ultimo aggiornamento: {TERMS_UPDATED}</p>
       {TERMS_SECTIONS.map((s) => (
         <section key={s.title} className="space-y-2">
           <h3 className="font-black text-slate-800">{s.title}</h3>

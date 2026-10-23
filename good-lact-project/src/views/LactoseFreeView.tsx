@@ -14,12 +14,12 @@ export function LactoseFreeView({ onNewMeal, onEdit }: { onNewMeal: () => void; 
       </div>
       <CrossContaminationNotice />
       <DataStatusNotice />
-      <p className="text-[11px] text-slate-300 font-medium leading-relaxed px-4">
+      <p className="text-xs text-slate-600 font-medium leading-relaxed px-4">
         Se nel piatto ci sono ingredienti che non conosci (salse, impasti, condimenti pronti), controlla l'etichetta o chiedi a chi l'ha preparato.
       </p>
       <div className="flex gap-4">
         <button type="button" onClick={onEdit} className="flex-1 py-5 bg-white border-2 border-slate-100 text-slate-600 font-black rounded-3xl hover:bg-slate-50">Modifica pasto</button>
-        <button type="button" onClick={onNewMeal} className="flex-1 py-5 bg-slate-100 text-slate-400 font-black rounded-3xl hover:bg-slate-200">Nuovo pasto</button>
+        <button type="button" onClick={onNewMeal} className="flex-1 py-5 bg-slate-100 text-slate-600 font-black rounded-3xl hover:bg-slate-200">Nuovo pasto</button>
       </div>
     </motion.div>
   );

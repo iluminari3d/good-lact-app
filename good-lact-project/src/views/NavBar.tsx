@@ -53,8 +53,8 @@ export function NavBar({ view, onNavigate }: Props) {
                 onClick={() => onNavigate(t.view)}
                 aria-current={activeTab === t.view ? 'page' : undefined}
                 className={cn(
-                  'w-full flex flex-col items-center gap-1 pt-3 pb-2 text-[10px] font-black uppercase tracking-wider transition-colors',
-                  activeTab === t.view ? 'text-primary' : 'text-slate-400 hover:text-primary',
+                  'w-full flex flex-col items-center gap-1 pt-3 pb-2 text-xs font-extrabold tracking-normal transition-colors',
+                  activeTab === t.view ? 'text-primary' : 'text-slate-600 hover:text-primary',
                 )}
               >
                 {t.icon}
@@ -82,7 +82,7 @@ export function NavBar({ view, onNavigate }: Props) {
                   aria-current={activeSide === item.view ? 'page' : undefined}
                   className={cn(
                     'w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-colors text-left',
-                    activeSide === item.view ? 'bg-primary/10 text-primary' : 'text-slate-500 hover:bg-slate-50 hover:text-primary',
+                    activeSide === item.view ? 'bg-primary/10 text-primary' : 'text-slate-600 hover:bg-slate-50 hover:text-primary',
                   )}
                 >
                   {item.icon}

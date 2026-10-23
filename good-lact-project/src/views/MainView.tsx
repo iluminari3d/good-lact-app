@@ -103,14 +103,14 @@ export function MainView(props: Props) {
       {/* Lattasi */}
       <div className="space-y-3">
         <div className="flex justify-between items-center h-5">
-          <label htmlFor="lactase" className="text-xs font-black text-slate-400 uppercase tracking-widest">
+          <label htmlFor="lactase" className="text-xs font-black text-slate-600 uppercase tracking-widest">
             Enzima utilizzato
           </label>
           <button
             type="button"
             aria-label="Azzera la scelta dell'enzima"
             onClick={() => props.onLactaseChange('')}
-            className="p-1 hover:bg-slate-100 rounded transition-colors text-slate-300 hover:text-primary"
+            className="p-1 hover:bg-slate-100 rounded transition-colors text-slate-600 hover:text-primary"
           >
             <RotateCcw size={12} />
           </button>
@@ -127,7 +127,7 @@ export function MainView(props: Props) {
               <option key={key} value={key}>{data.name}</option>
             ))}
           </select>
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-600">
             <ChevronLeft className="-rotate-90" size={18} />
           </div>
         </div>
@@ -146,7 +146,7 @@ export function MainView(props: Props) {
 
       {/* Descrivi o fotografa */}
       <div className="space-y-3">
-        <label htmlFor="dish-description" className="text-xs font-black text-slate-400 uppercase tracking-widest block">
+        <label htmlFor="dish-description" className="text-xs font-black text-slate-600 uppercase tracking-widest block">
           Cosa stai mangiando?
         </label>
         <div className="p-4 bg-slate-100/50 rounded-3xl space-y-4 shadow-inner">
@@ -167,7 +167,7 @@ export function MainView(props: Props) {
                 type="button"
                 aria-label="Rimuovi la foto"
                 onClick={() => setImage(null)}
-                className="absolute -top-2 -right-2 w-7 h-7 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-400 hover:text-red-500 shadow"
+                className="absolute -top-2 -right-2 w-7 h-7 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-600 hover:text-red-500 shadow"
               >
                 <X size={14} />
               </button>
@@ -217,11 +217,11 @@ export function MainView(props: Props) {
 
       {/* Ricerca alimento singolo */}
       <div className="space-y-3 relative">
-        <label htmlFor="food-search" className="text-xs font-black text-slate-400 uppercase tracking-widest block">
+        <label htmlFor="food-search" className="text-xs font-black text-slate-600 uppercase tracking-widest block">
           Oppure aggiungi un alimento
         </label>
         <div className="relative group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors" size={18} />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-primary transition-colors" size={18} />
           <input
             id="food-search"
             type="text"
@@ -242,16 +242,16 @@ export function MainView(props: Props) {
               className="absolute z-50 left-0 right-0 bg-white rounded-2xl shadow-xl max-h-72 overflow-y-auto p-1 border border-slate-100"
             >
               {results.length === 0 && (
-                <p className="p-3 text-center text-slate-400 font-bold text-xs">
+                <p className="p-3 text-center text-slate-600 font-bold text-xs">
                   Nessun risultato. Prova con un'altra parola, oppure descrivi il piatto e premi «Analizza», o usa «Componi un piatto a mano».
                 </p>
               )}
               {results.map(([key, f]) => (
                 <button key={key} onClick={() => addFood(key)} className="w-full text-left p-3 hover:bg-slate-50 rounded-xl flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400"><Plus size={16} /></div>
+                  <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600"><Plus size={16} /></div>
                   <div className="flex flex-col">
                     <span className="text-sm font-bold text-slate-700">{f.name}</span>
-                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                    <span className="text-xs text-slate-600 font-bold uppercase tracking-wider">
                       {[f.category, lactoseHint(f)].filter(Boolean).join(' · ')}
                     </span>
                   </div>
@@ -268,7 +268,7 @@ export function MainView(props: Props) {
       {/* Pasto */}
       {meal.length > 0 && (
         <div className="space-y-4">
-          <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Il tuo pasto</p>
+          <p className="text-xs font-black text-slate-600 uppercase tracking-widest">Il tuo pasto</p>
           {meal.map((item) => (
             <div key={item.id} className="p-5 bg-white border border-slate-100 rounded-3xl shadow-sm space-y-4">
               <div className="flex justify-between items-center gap-2">
@@ -278,17 +278,17 @@ export function MainView(props: Props) {
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
                   {item.kind === 'dish' && (
-                    <button type="button" aria-label={`Modifica ${item.name}`} onClick={() => props.onEditDish(item.id)} className="p-2 text-slate-300 hover:text-primary rounded-xl">
+                    <button type="button" aria-label={`Modifica ${item.name}`} onClick={() => props.onEditDish(item.id)} className="p-2 text-slate-600 hover:text-primary rounded-xl">
                       <Pencil size={16} />
                     </button>
                   )}
-                  <button type="button" aria-label={`Rimuovi ${item.name}`} onClick={() => onMealChange(meal.filter((m) => m.id !== item.id))} className="p-2 text-slate-300 hover:text-red-500 rounded-xl">
+                  <button type="button" aria-label={`Rimuovi ${item.name}`} onClick={() => onMealChange(meal.filter((m) => m.id !== item.id))} className="p-2 text-slate-600 hover:text-red-500 rounded-xl">
                     <Trash2 size={16} />
                   </button>
                 </div>
               </div>
               {item.kind === 'dish' ? (
-                <p className="text-xs text-slate-400 font-medium">
+                <p className="text-xs text-slate-600 font-medium">
                   {item.dish?.ingredients.filter((i) => i.active).length ?? 0} ingredienti considerati
                 </p>
               ) : (
@@ -303,8 +303,8 @@ export function MainView(props: Props) {
                     className="w-24 p-3 bg-slate-50 border-2 border-transparent focus:border-primary/20 rounded-xl text-sm font-bold outline-none text-center"
                   />
                   {FOODS_DATA[item.foodKey ?? '']?.lactoseMode === 'perPortion' ? (
-                    <span className="flex-1 text-sm font-bold text-slate-500">
-                      {item.quantity === 1 ? 'porzione' : 'porzioni'} <span className="text-xs font-medium text-slate-400">(porzione tipica da ricetta)</span>
+                    <span className="flex-1 text-sm font-bold text-slate-600">
+                      {item.quantity === 1 ? 'porzione' : 'porzioni'} <span className="text-xs font-medium text-slate-600">(porzione tipica da ricetta)</span>
                     </span>
                   ) : (
                   <select
@@ -336,7 +336,7 @@ export function MainView(props: Props) {
             <Calculator size={28} /> Calcola la dose
           </button>
           {!props.canCalculate && (
-            <p className="text-center text-xs font-semibold text-slate-400">
+            <p className="text-center text-xs font-semibold text-slate-600">
               Scegli prima l'enzima che usi{props.lactaseKey === 'custom' ? ' e inserisci gli FCC' : ''}.
             </p>
           )}
